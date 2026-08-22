@@ -39,7 +39,7 @@ if [ $RomDir = GZDoom ]; then
 
 	# if additional mod files are present (wad,pk3,ipk3,pk7) , show a selector
 	if [ "$(find "$MODS_DIR" -type f 2>/dev/null)" ]; then
-		selector_output=$(selector -t "Choose a mod file to load, or press B to continue without a mod." -d "$MODS_DIR")
+		selector_output=$(selector -t "Choose a mod file to load, or press B to continue without a mod." -d "$MODS_DIR" | grep "You selected")
 		selected_file="${selector_output#*: }"
 		echo "Selected file: $selected_file"
 	fi

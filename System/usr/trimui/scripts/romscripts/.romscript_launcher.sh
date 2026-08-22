@@ -84,7 +84,7 @@ if [ -z "$choices" ]; then
 fi
 
 # Show selector menu
-eval "selector_output=\$(selector -i /mnt/SDCARD/trimui/res/crossmix-os/bg-plain.png -t \"Choose an action for $ROM_FILENAME_NOEXT\" -fs 150 -c $choices)"
+eval "selector_output=\$(selector -i /mnt/SDCARD/trimui/res/crossmix-os/bg-plain.png -t \"Choose an action for $ROM_FILENAME_NOEXT\" -fs 150 -c $choices | grep \"You selected\")"
 selected_name=$(printf '%s\n' "$selector_output" | sed 's/^.*: //')
 
 # Exit if no selection

@@ -10,7 +10,17 @@ cd /mnt/SDCARD/Apps/MusicPlayer
 sleep 0.4
 
 # To support LCD switch-Off key combination
-/mnt/SDCARD/System/bin/thd --triggers /mnt/SDCARD/Apps/MusicPlayer/thd.conf /dev/input/event3 &
+DEVICE_PATH="/dev/input/event3" # Default fallback
+
+for event in /sys/class/input/event*; do
+    if [ -f "$event/device/name" ]; then
+        if [ "$(cat "$event/device/name")" = "TRIMUI Player1" ]; then
+            DEVICE_PATH="/dev/input/${event##*/}"
+            break
+        fi
+    fi
+done
+/mnt/SDCARD/System/bin/thd --triggers /mnt/SDCARD/Apps/MusicPlayer/thd.conf "$DEVICE_PATH" &
 
 echo 1 >/tmp/stay_awake
 HOME=/mnt/SDCARD/Apps/MusicPlayer /mnt/SDCARD/Apps/MusicPlayer/gmu.bin -c gmu.settings.conf

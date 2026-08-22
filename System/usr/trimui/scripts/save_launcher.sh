@@ -1,6 +1,11 @@
 save_launcher() {
     Emu_cfg="$EMU_DIR/launchers.cfg"
-    Launcher_name=$(grep "dowork 0x" "/tmp/log/messages" | tail -n 1 | sed -e 's/.*: \(.*\) dowork 0x.*/\1/')
+
+    # Add LOG_FILE detection
+    LOG_FILE="/tmp/log/messages"
+    [ -f "/tmp/messages" ] && LOG_FILE="/tmp/messages"
+
+    Launcher_name=$(grep "dowork 0x" "$LOG_FILE" | tail -n 1 | sed -e 's/.*: \(.*\) dowork 0x.*/\1/')
 
     if [ -n "$1" ]; then
         GAME=$(basename "$1")

@@ -12,7 +12,7 @@ if [ $? -eq 10 ]; then
 		"Stop SmartLed" \
 		"----------------------------" \
 		"Enable SmartLed at boot" \
-		"Disable SmartLed at boot")
+		"Disable SmartLed at boot" | grep "You selected")
 
 	CHOICE=$(printf '%s\n' "$CHOICE" | sed 's/^.*: //')
 

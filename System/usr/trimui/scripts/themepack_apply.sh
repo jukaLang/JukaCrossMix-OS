@@ -27,9 +27,9 @@ fi
 
 # Apply boot logo
 if [ -n "$bootlogo" ]; then
-    read -r Current_device </etc/trimui_device.txt
+    read -r current_device </etc/trimui_device.txt
 
-    if [ "$Current_device" = "tsp" ]; then
+    if [ "$current_device" = "tsp" ]; then
         src_dir="/mnt/SDCARD/Apps/BootLogo/Images_1280x720/"
     else
         src_dir="/mnt/SDCARD/Apps/BootLogo/Images_1024x768/"
@@ -40,7 +40,7 @@ if [ -n "$bootlogo" ]; then
         "/mnt/SDCARD/Emus/_BootLogo/launch.sh" "$src_dir/$bootlogo"
     else
         echo "${src_dir#/mnt/SDCARD/}$bootlogo does not exist."
-        /mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -m "\"${src_dir#/mnt/SDCARD/}$bootlogo\" does not exist !!"  -c red -t 3
+        /mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -m "\"${src_dir#/mnt/SDCARD/}$bootlogo\" does not exist !!" -c red -t 3
     fi
 fi
 

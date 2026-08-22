@@ -1,37 +1,90 @@
 #!/bin/sh
-# Set PATH and library path
 PATH="/mnt/SDCARD/System/bin:/mnt/SDCARD/System/usr/trimui/scripts/:$PATH"
 export LD_LIBRARY_PATH="/mnt/SDCARD/System/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
 
-
-if ! read -r current_device </etc/trimui_device.txt; then
-    RES=$(fbset | awk '/geometry/ {print $2 "x" $3}')
-    if [ "$RES" = "1280x720" ]; then
-        current_device="tsp"
-    else
-        current_device="brick"
-    fi
-    echo -n $current_device >/etc/trimui_device.txt
-
+if [ -f /etc/trimui_device.txt ]; then
+    read -r current_device </etc/trimui_device.txt
 fi
+
+case "$current_device" in
+    tsp|tsps|brick|brickpro)
+        # Device already known
+        ;;
+
+    *)
+        cpuinfo=$(cat /proc/cpuinfo 2>/dev/null)
+
+        case "$cpuinfo" in
+            *TG5040*)
+                current_device="tsp"
+                Current_FW_Revision=$(grep 'DISTRIB_DESCRIPTION' /etc/openwrt_release | cut -d '.' -f 3)
+                FIRMWARE_FILENAME="trimui_tg5040.awimg"
+                ;;
+
+            *TG5050*)
+                current_device="tsps"
+                Current_FW_Revision=$(uname -v | cut -d '#' -f2 | cut -d ' ' -f1)
+                FIRMWARE_FILENAME="trimui_tg5050.awimg"
+                ;;
+
+            *TG3040*)
+                current_device="brick"
+                Current_FW_Revision=$(grep 'DISTRIB_DESCRIPTION' /etc/openwrt_release | cut -d '.' -f 3)
+                FIRMWARE_FILENAME="trimui_tg3040.awimg"
+                ;;
+
+            *TG4040*)
+                current_device="brickpro"
+                Current_FW_Revision=$(grep 'DISTRIB_DESCRIPTION' /etc/openwrt_release | cut -d '.' -f 3)
+                FIRMWARE_FILENAME="trimui_tg4040.awimg"
+                ;;
+
+            *)
+                current_device="unknown"
+                ;;
+        esac
+
+        echo "$current_device" >/etc/trimui_device.txt
+        ;;
+esac
 
 read -r last_device </mnt/SDCARD/System/etc/last_device.txt
 if [ "$current_device" != "$last_device" ]; then
     echo -n $current_device >/mnt/SDCARD/System/etc/last_device.txt
-    touch /tmp/device_changed
+    echo -n $last_device >/tmp/device_changed
 fi
+
+FIRMWARE_DIR="/mnt/SDCARD/trimui/firmwares"
+FW_ARCHIVE_FILE=$(ls "$FIRMWARE_DIR"/firmware_"${current_device}"_v*.7z* 2>/dev/null | head -n1)
+
+# Exit if no firmware is found
+if [ -f "$FW_ARCHIVE_FILE" ]; then
+    echo "Found firmware: $FW_ARCHIVE_FILE"
+
+    # Extract the filename without the path
+    fw_basename=$(basename "$FW_ARCHIVE_FILE")
+    # Remove the prefix "firmware_${current_device}_v"
+    fw_info=${fw_basename#firmware_"${current_device}"_v}
+    # Remove the extension ".7z.001" or ".7z"
+    fw_info=${fw_info%.7z.001}
+    fw_info=${fw_info%.7z}
+
+    # Separate version and revision (separated by '_')
+    # Example: "1.1.0_20250505" -> version="1.1.0", revision="20250505"
+    Required_FW_Version=${fw_info%_*}
+    Required_FW_Revision=${fw_info#*_}
+
+    # Print extracted version and revision
+    echo "Current  FW Revision: $Current_FW_Revision"
+    echo "Required FW Revision: $Required_FW_Revision"
+else
+    echo "No firmware found for device $current_device"
+    Required_FW_Revision=""
+fi
+
+# ----------------------------------------------------------------------------
 
 ################ check min Firmware version required ################
-
-CrossMixFWfile="/mnt/SDCARD/trimui/firmwares/MinFwVersion.txt"
-
-if [ ! -f "$CrossMixFWfile" ]; then
-    echo "Configuration file $CrossMixFWfile not found, skipping firmware check."
-    exit 0
-fi
-
-Current_FW_Revision=$(grep 'DISTRIB_DESCRIPTION' /etc/openwrt_release | cut -d '.' -f 3)
-Required_FW_Revision=$(sed -n '2p' "$CrossMixFWfile")
 
 # Function to check CRC and update message
 check_firmware_crc() {
@@ -65,7 +118,7 @@ diagnose() {
     message="${message}\nChecking filesystem..."
     /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -sp -ff "/mnt/SDCARD/Themes/CrossMix - OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Wait.jpg" &
     check_filesystem
-    FW_Size=$(/mnt/SDCARD/System/bin/7zz l "$FIRMWARE_PATH" -slt "$FIRMWARE_FILE" | awk ' /^Path = / {found=1; next}  found && /^Size = / { print $3; exit }
+    FW_Size=$(/mnt/SDCARD/System/bin/7zz l "$FW_ARCHIVE_FILE" -slt "$FIRMWARE_FILENAME" | awk ' /^Path = / {found=1; next}  found && /^Size = / { print $3; exit }
 ')
 
     FW_Size_MB=$(($FW_Size / 1024 / 1024))
@@ -86,8 +139,7 @@ diagnose() {
     fi
 }
 
-echo "Current FW Revision: $Current_FW_Revision"
-echo "Required FW Revision: $Required_FW_Revision"
+#######################################################
 
 if [ -z "$Current_FW_Revision" ] || [ -z "$Required_FW_Revision" ]; then
 
@@ -103,7 +155,6 @@ else
 
         CrossMix_version=$(cat /mnt/SDCARD/System/usr/trimui/crossmix-version.txt)
         Current_FW_Version="$(cat /etc/version)"
-        Required_FW_Version=$(sed -n '1p' "$CrossMixFWfile")
 
         echo "Current firmware ($Current_FW_Version - $Current_FW_Revision) must be updated to $Required_FW_Version - $Required_FW_Revision to support CrossMix OS v$CrossMix_version."
 
@@ -120,12 +171,12 @@ else
 
             # make some place
             rm -rf /usr/trimui/apps/zformatter_fat32/
-            rm -rf /usr/trimui/res/sound/bgm2.mp3
+            rm /usr/trimui/res/sound/bgm2.mp3
+            rm /etc/1.mp4
             swapoff -a
             rm -rf /swapfile
-            # cp "/mnt/SDCARD/trimui/res/skin/bg.png" "/usr/trimui/res/skin/"
 
-            cp -vf /bin/busybox /mnt/SDCARD/System/bin/busybox.bak
+            cp -vf /bin/busybox /mnt/SDCARD/System/bin/busybox.old
             /mnt/SDCARD/System/bin/rsync /mnt/SDCARD/System/usr/trimui/scripts/busybox /bin/busybox
             ln -vs "/bin/busybox" "/bin/bash"
 
@@ -152,13 +203,11 @@ else
 
         sync
 
-        FIRMWARE_PATH="/mnt/SDCARD/trimui/firmwares/firmware_${current_device}_v${Required_FW_Version}_${Required_FW_Revision}.7z.001"
-        FIRMWARE_FILE="trimui_tg5040.awimg"
         message="Current   FW version: $Current_FW_Version - $Current_FW_Revision\nRequired FW version: $Required_FW_Version - $Required_FW_Revision\n \n \n"
         crc_verified=false
 
-        if [ ! -f "$FIRMWARE_PATH" ]; then
-            echo "Firmware archive file not found: $FIRMWARE_PATH"
+        if [ ! -f "$FW_ARCHIVE_FILE" ]; then
+            echo "Firmware archive file not found: $FW_ARCHIVE_FILE"
             pkill presenter
             sleep 0.5
             message="${message}Firmware compressed file not found\nCanceling update.\n"
@@ -166,12 +215,12 @@ else
             exit 1
         fi
 
-        if [ -f "/mnt/SDCARD/$FIRMWARE_FILE" ]; then
+        if [ -f "/mnt/SDCARD/$FIRMWARE_FILENAME" ]; then
             echo "Firmware file already exists, checking CRC..."
 
             message="${message}A firmware file is already present.\n"
 
-            if check_firmware_crc "$FIRMWARE_PATH" "$FIRMWARE_FILE"; then
+            if check_firmware_crc "$FW_ARCHIVE_FILE" "/mnt/SDCARD/$FIRMWARE_FILENAME"; then
                 echo "CRC check on existing file is OK. Skipping extraction."
                 crc_verified=true
             else
@@ -187,7 +236,7 @@ else
             /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -sp -ff "/mnt/SDCARD/Themes/CrossMix - OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Wait.jpg" &
 
             /mnt/SDCARD/System/usr/trimui/scripts/cpufreq.sh ondemand 3 7
-            if ! /mnt/SDCARD/System/bin/7zz x "$FIRMWARE_PATH" -o"/mnt/SDCARD" -y; then
+            if ! /mnt/SDCARD/System/bin/7zz x "$FW_ARCHIVE_FILE" -o"/mnt/SDCARD" -y; then
                 echo "Failed to extract firmware"
                 pkill presenter
                 sleep 0.5
@@ -197,12 +246,13 @@ else
                 diagnose
                 exit 1
             fi
+            sync
             message="${message}OK\n"
             pkill presenter
             sleep 0.5
             sync
 
-            if check_firmware_crc "$FIRMWARE_PATH" "$FIRMWARE_FILE"; then
+            if check_firmware_crc "$FW_ARCHIVE_FILE" "$FIRMWARE_FILE"; then
                 crc_verified=true
             else
                 message="${message}\nFirmware CRC check has failed, canceling update.\nPress X to diagnose."
@@ -217,7 +267,7 @@ else
 
         if [ "$crc_verified" = true ]; then
             # Removing backup from previous FW update runs
-            if -f "/mnt/SDCARD/trimui/firmwares/Last_Automatic_Backup.txt"; then
+            if [ -f "/mnt/SDCARD/trimui/firmwares/Last_Automatic_Backup.txt" ]; then
                 Last_Automatic_Backup=$(cat /mnt/SDCARD/trimui/firmwares/Last_Automatic_Backup.txt)
                 if [ -f "/mnt/SDCARD/System/backups/firmware_settings/$current_device/$Last_Automatic_Backup" ]; then
                     echo "Removing last automatic backup: $Last_Automatic_Backup"
@@ -260,8 +310,6 @@ else
 fi
 
 ################ check if a CrossMix-OS update is available ################
-
-
 
 # Find the update file
 UPDATE_FILE=$(find /mnt/SDCARD -maxdepth 1 -name "CrossMix-OS_v*.zip" -print -quit)

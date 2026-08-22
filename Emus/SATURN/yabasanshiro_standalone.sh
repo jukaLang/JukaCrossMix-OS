@@ -6,7 +6,11 @@ cpufreq.sh performance 7 7
 
 export HOME="$PWD"
 
-choice=$(grep -i "dowork 0x" "/tmp/log/messages" | tail -n 1 | grep -i "(HLE BIOS)")
+# Add LOG_FILE detection
+LOG_FILE="/tmp/log/messages"
+[ -f "/tmp/messages" ] && LOG_FILE="/tmp/messages"
+
+choice=$(grep -i "dowork 0x" "$LOG_FILE" | tail -n 1 | grep -i "(HLE BIOS)")
 if [ -n "$choice" ]; then
     BIOS_FILE=""
     echo "Using Yabasanshiro HLE BIOS"
@@ -21,7 +25,7 @@ else
 fi
 
 if [ -f "/tmp/cmd_to_run.sh" ] && ! grep -q "dowork 0x" "/tmp/cmd_to_run.sh"; then
-    sed -i "1s|^|echo \"$choice\" > /tmp/log/messages\n|" "/tmp/cmd_to_run.sh"
+    sed -i "1s|^|echo \"$choice\" > $LOG_FILE\n|" "/tmp/cmd_to_run.sh"
 fi
 
 ./yabasanshiro -r 3 -i "$@" -b "$BIOS_FILE"

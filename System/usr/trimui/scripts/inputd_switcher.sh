@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 PATH="/mnt/SDCARD/System/bin:/mnt/SDCARD/System/usr/trimui/scripts:$PATH"
 LD_LIBRARY_PATH="/mnt/SDCARD/System/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
+bin_dir="/mnt/SDCARD/trimui/app"
 
 script_name=$(basename "$0" .sh)
 if [ "$script_name" = "inputd_switcher" ]; then
@@ -9,9 +10,11 @@ else
     polling_rate=$script_name
 fi
 
-bin_dir="/mnt/SDCARD/trimui/app"
+if ! [ -f "/etc/trimui_device.txt" ]; then
+    exit
+fi
 
-read -r device < /etc/trimui_device.txt
+read -r device </etc/trimui_device.txt
 if [ "$device" = "brick" ]; then
     cp /usr/trimui/bin/trimui_inputd $bin_dir/trimui_inputd
     [ "$script_name" != "inputd_switcher" ] && infoscreen -m "Feature not supported yet on brick"
@@ -19,17 +22,25 @@ if [ "$device" = "brick" ]; then
 fi
 
 
-cp /mnt/SDCARD/System/resources/${device}_inputd "$bin_dir/trimui_inputd"
-chmod +x "$bin_dir/trimui_inputd"
-sync
+if [ -f "/mnt/SDCARD/System/resources/${device}_inputd" ]; then
+    cp /mnt/SDCARD/System/resources/${device}_inputd "$bin_dir/trimui_inputd"
+    chmod +x "$bin_dir/trimui_inputd"
+    sync
+else
+    [ "$script_name" != "inputd_switcher" ] && infoscreen -m "Input daemon not found!"
+    exit 1
+fi
 
+if [ "$device" = "brickpro" ]; then
+    exit 1  # No configurable polling rate on TrimUI Brick Pro
+fi
 
 case "$polling_rate" in
 "1ms")
-    echo 1000 > "$bin_dir/inputd_polling_rate.cfg"
+    echo 1000 >"$bin_dir/inputd_polling_rate.cfg"
     ;;
 "8ms")
-    echo 8000 > "$bin_dir/inputd_polling_rate.cfg"
+    echo 8000 >"$bin_dir/inputd_polling_rate.cfg"
     ;;
 "16ms")
     rm "$bin_dir/inputd_polling_rate.cfg"
@@ -37,7 +48,6 @@ case "$polling_rate" in
 esac
 
 sync
-
 
 # Menu modification to reflect the change immediately
 

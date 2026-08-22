@@ -11,23 +11,23 @@ Min_Value=0
 Max_Value=3
 interval=1
 
-# Crée le dossier si nécessaire
+# Create the folder if necessary
 mkdir -p "/tmp/trimui_osd/$osd_varname"
 
-# Récupération de Cur_Value depuis le fichier de status (avant modification)
+# Retrieving Cur_Value from the status file (before modification)
 if [ -f "$status_file" ]; then
     Cur_Value=$(cut -d/ -f1 "$status_file")
 else
     Cur_Value=$Min_Value
 fi
 
-# Mode initial : création du fichier status au lancement initial
+# Initial mode: Creating the status file on first launch
 if [ $# -eq 0 ]; then
     echo "$Cur_Value/$Max_Value" > "$status_file"
     exit 0
 fi
 
-# Mise à jour de la valeur en fonction de l'argument (0 = gauche, 1 = droite)
+# Update the value based on the argument (0 = left, 1 = right)
 if [ "$1" -eq 0 ]; then
 if [ "$Cur_Value" -eq 1 ]; then
 /mnt/SDCARD/System/usr/trimui/scripts/cpufreq-restore.sh &
@@ -45,10 +45,10 @@ fi
     [ "$Cur_Value" -gt "$Max_Value" ] && Cur_Value=$Max_Value
 fi
 
-# Mise à jour du fichier de statut
+# Updating the status file
 echo "$Cur_Value/$Max_Value" > "$status_file"
 
-# Mise à jour de la fréquence visible (OSD ou autre usage)
+# Updating the visible frequency (OSD or other use)
 case "$Cur_Value" in
     0) 
     Cur_Preset="-"

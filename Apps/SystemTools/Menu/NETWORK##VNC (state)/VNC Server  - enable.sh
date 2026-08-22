@@ -7,7 +7,7 @@ export LD_LIBRARY_PATH="/mnt/SDCARD/System/lib:/mnt/SDCARD/Apps/PortMaster/PortM
 json_file="/mnt/SDCARD/System/etc/crossmix.json"
 
 if [ ! -f "$json_file" ]; then
-  echo "{}" >"$json_file"
+    echo "{}" >"$json_file"
 fi
 
 /mnt/SDCARD/System/bin/jq '. += {"VNC": 1}' "$json_file" >"/tmp/json_file.tmp" && mv "/tmp/json_file.tmp" "$json_file"
@@ -16,17 +16,22 @@ pkill -9 vncserver
 pkill -9 gptokeyb2
 sleep 0.3
 
-if [ -e "/dev/input/event4" ]; then
-  keyb_input="/dev/input/event3"
-else
-  keyb_input="/dev/input/event4"
-fi
-
 sed -i 's/export NETWORK_VNC="N"/export NETWORK_VNC="Y"/' /mnt/SDCARD/System/etc/ex_config
 
 touch /tmp/dummy.ini
 /mnt/SDCARD/Apps/PortMaster/PortMaster/gptokeyb2 -c /tmp/dummy.ini &
 sleep 0.5
+
+keyb_input="/dev/input/event3" # Default fallback
+for event in /sys/class/input/event*; do
+    if [ -f "$event/device/name" ]; then
+        if [ "$(cat "$event/device/name")" = "Fake Keyboard" ]; then
+            keyb_input="/dev/input/${event##*/}"
+            break
+        fi
+    fi
+done
+
 vncserver -k $keyb_input &
 
 # we modify the DB entries to reflect the current state

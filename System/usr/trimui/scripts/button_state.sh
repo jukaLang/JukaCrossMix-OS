@@ -9,11 +9,11 @@
 # ./button_state.sh A
 # exit_code=$?
 # if [ $exit_code -eq 10 ]; then
-    # echo "The button is currently pressed."
+# echo "The button is currently pressed."
 # elif [ $exit_code -eq 0 ]; then
-    # echo "The button is currently released."
+# echo "The button is currently released."
 # else
-    # echo "Error determining button state."
+# echo "Error determining button state."
 # fi
 # ======================================================
 
@@ -26,21 +26,63 @@ fi
 BUTTON="$1"
 
 # Input device location
-DEVICE_PATH="/dev/input/event3"
+DEVICE_PATH="/dev/input/event3" # Default fallback
+
+for event in /sys/class/input/event*; do
+    if [ -f "$event/device/name" ]; then
+        if [ "$(cat "$event/device/name")" = "TRIMUI Player1" ]; then
+            DEVICE_PATH="/dev/input/${event##*/}"
+            break
+        fi
+    fi
+done
 
 # Button mapping table
 case $BUTTON in
-    A) EVENT_TYPE="1" ; EVENT_CODE="305" ;;
-    B) EVENT_TYPE="1" ; EVENT_CODE="304" ;;
-    X) EVENT_TYPE="1" ; EVENT_CODE="308" ;;
-    Y) EVENT_TYPE="1" ; EVENT_CODE="307" ;;
-    L) EVENT_TYPE="1" ; EVENT_CODE="310" ;;
-    R) EVENT_TYPE="1" ; EVENT_CODE="311" ;;
-    SELECT) EVENT_TYPE="1" ; EVENT_CODE="314" ;;
-    START) EVENT_TYPE="1" ; EVENT_CODE="315" ;;
-    MENU) EVENT_TYPE="1" ; EVENT_CODE="316" ;;
-    FN) EVENT_TYPE="5" ; EVENT_CODE="1" ;;
-    *) echo "Button not found"; exit 1 ;;
+A)
+    EVENT_TYPE="1"
+    EVENT_CODE="305"
+    ;;
+B)
+    EVENT_TYPE="1"
+    EVENT_CODE="304"
+    ;;
+X)
+    EVENT_TYPE="1"
+    EVENT_CODE="308"
+    ;;
+Y)
+    EVENT_TYPE="1"
+    EVENT_CODE="307"
+    ;;
+L)
+    EVENT_TYPE="1"
+    EVENT_CODE="310"
+    ;;
+R)
+    EVENT_TYPE="1"
+    EVENT_CODE="311"
+    ;;
+SELECT)
+    EVENT_TYPE="1"
+    EVENT_CODE="314"
+    ;;
+START)
+    EVENT_TYPE="1"
+    EVENT_CODE="315"
+    ;;
+MENU)
+    EVENT_TYPE="1"
+    EVENT_CODE="316"
+    ;;
+FN)
+    EVENT_TYPE="5"
+    EVENT_CODE="1"
+    ;;
+*)
+    echo "Button not found"
+    exit 1
+    ;;
 esac
 
 # Debug: Display the corresponding button

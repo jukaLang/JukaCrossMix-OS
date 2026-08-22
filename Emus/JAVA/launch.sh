@@ -32,10 +32,25 @@ rom_name="$(basename "$rom_path" .jar)"
 config_dir="/mnt/SDCARD/Emus/JAVA/zulu17/bin/config"
 resolutions="240x320 320x240 128x128 176x208 640x360"
 
+DEVICE_PATH="/dev/input/event3" # Default fallback
+
+for event in /sys/class/input/event*; do
+    if [ -f "$event/device/name" ]; then
+        if [ "$(cat "$event/device/name")" = "TRIMUI Player1" ]; then
+            DEVICE_PATH="/dev/input/${event##*/}"
+            break
+        fi
+    fi
+done
+
 infoscreen.sh -i "$Current_bg" -m "running ${rom_name}" &
 
+# Add LOG_FILE detection
+LOG_FILE="/tmp/log/messages"
+[ -f "/tmp/messages" ] && LOG_FILE="/tmp/messages"
+
 # Read last launcher command from logs
-Launcher=$(grep -i "dowork 0x" "/tmp/log/messages" | tail -n 1)
+Launcher=$(grep -i "dowork 0x" "$LOG_FILE" | tail -n 1)
 
 # Helper: delete other config folders and rename rms folder
 update_configs() {
@@ -59,7 +74,7 @@ update_configs() {
 
 # Helper: launch selector and set resx/resy
 choose_resolution() {
-    selector_output=$(selector -t "Choose resolution for $rom_name:\n \n  (see https://tasemulators.github.io/freej2me-plus\n   for resolution database)" -fs 160 -c $resolutions)
+    selector_output=$(selector -t "Choose resolution for $rom_name:\n \n  (see https://tasemulators.github.io/freej2me-plus\n   for resolution database)" -fs 160 -c $resolutions | grep "You selected")
     selected="${selector_output#*: }"
     case "$selected" in
     "240x320")
@@ -129,10 +144,10 @@ else
         resy="${res#*x}"
         if [ -d "$config_dir/${rom_name}${resx}${resy}" ]; then
             echo "Existing config found: ${resx}x${resy}"
-            thd --triggers /mnt/SDCARD/Emus/JAVA/thd.conf /dev/input/event3 &
+            thd --triggers /mnt/SDCARD/Emus/JAVA/thd.conf $DEVICE_PATH &
             cpufreq.sh performance 7 7
             exec java -jar freej2me-sdl.jar "$rom_path" "$resx" "$resy" 100
-            pkill -f "thd --triggers /mnt/SDCARD/Emus/JAVA/thd.conf /dev/input/event3"
+            pkill -f "thd --triggers /mnt/SDCARD/Emus/JAVA/thd.conf $DEVICE_PATH"
         fi
     done
 
@@ -142,6 +157,6 @@ else
 fi
 
 # Final launch
-thd --triggers /mnt/SDCARD/Emus/JAVA/thd.conf /dev/input/event3 &
+thd --triggers /mnt/SDCARD/Emus/JAVA/thd.conf $DEVICE_PATH &
 java -jar freej2me-sdl.jar "$rom_path" "$resx" "$resy" 100
-pkill -f "thd --triggers /mnt/SDCARD/Emus/JAVA/thd.conf /dev/input/event3"
+pkill -f "thd --triggers /mnt/SDCARD/Emus/JAVA/thd.conf $DEVICE_PATH"

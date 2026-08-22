@@ -1,7 +1,18 @@
 #!/bin/sh
 
 STATUS_FILE="/tmp/trimui_osd/toggle_fastforward/status"
-CMD="/mnt/SDCARD/System/bin/r2_fastforward /dev/input/event3"
+
+DEVICE_PATH="/dev/input/event3" # Default fallback
+for event in /sys/class/input/event*; do
+    if [ -f "$event/device/name" ]; then
+        if [ "$(cat "$event/device/name")" = "TRIMUI Player1" ]; then
+            DEVICE_PATH="/dev/input/${event##*/}"
+            break
+        fi
+    fi
+done
+
+CMD="/mnt/SDCARD/System/bin/r2_fastforward $DEVICE_PATH"
 
 if [ $# -eq 0 ]; then
     mkdir -p "$(dirname "$STATUS_FILE")"
@@ -15,7 +26,7 @@ else
     fi
 
     # Check if r2_fastforward is already running
-    PIDS=$(pgrep -f "r2_fastforward /dev/input/event3")
+    PIDS=$(pgrep -f "r2_fastforward $DEVICE_PATH")
 
     if [ -n "$PIDS" ]; then
         echo "Killing r2_fastforward..."

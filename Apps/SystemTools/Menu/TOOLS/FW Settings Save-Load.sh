@@ -3,6 +3,16 @@ export LD_LIBRARY_PATH=./lib:/mnt/SDCARD/System/lib:$LD_LIBRARY_PATH
 export PATH="/mnt/SDCARD/System/bin:/mnt/SDCARD/System/usr/trimui/scripts:$PATH"
 SEVENZ="/mnt/SDCARD/System/bin/7zz"
 
+read -r current_device </etc/trimui_device.txt
+case "$current_device" in
+tsps)
+    wpa_supplicant_PATH=etc/wifi/wpa_supplicant/wpa_supplicant.conf
+    ;;
+*)
+    wpa_supplicant_PATH=etc/wifi/wpa_supplicant.conf
+    ;;
+esac
+
 # Function to restore individual files from the archive
 restore_file() {
     path="$1"
@@ -11,17 +21,6 @@ restore_file() {
     chmod 644 "$path"
     chown root:root "$path"
 }
-
-if ! read -r current_device </etc/trimui_device.txt; then
-    RES=$(fbset | awk '/geometry/ {print $2 "x" $3}')
-    if [ "$RES" = "1280x720" ]; then
-        current_device="tsp"
-    else
-        current_device="brick"
-    fi
-    echo -n $current_device >/etc/trimui_device.txt
-
-fi
 
 # Function to show help
 show_help() {
@@ -37,6 +36,7 @@ show_help() {
     echo "  wifi                          Restore only wifi settings"
     echo "  joystick                      Restore only joystick calibration"
     echo "  mainui                        Restore only MainUI settings"
+    echo "  history                       Restore only command history"
     echo ""
     echo "Examples:"
     echo "  $0 --backup"
@@ -72,20 +72,20 @@ if [ $# -gt 0 ]; then
     esac
 else
     # Interactive mode - use selector
-    selector_output=$(selector -fs 200 -t "Choose an action to perform:                           (B to cancel)" -c "Backup" "Restore")
+    selector_output=$(selector -fs 200 -t "Choose an action to perform:                           (B to cancel)" -c "Backup" "Restore" | grep "You selected")
     selected_action="${selector_output#*: }"
 fi
 
 case "$selected_action" in
 "Backup")
-    echo "Backup mode"
+    echo "Backup mode for $current_device"
     ARCHIVE_PATH="/mnt/SDCARD/System/backups/firmware_settings/$current_device/backup_$(date +'%Y%m%d-%Hh%M-%S').7z"
     mkdir -p "/mnt/SDCARD/System/backups/firmware_settings/$current_device/"
     cd /
 
     # Create the backup archive including the specified files
     $SEVENZ a "$ARCHIVE_PATH" \
-        etc/wifi/wpa_supplicant.conf \
+        "$wpa_supplicant_PATH" \
         mnt/UDISK/system.json \
         mnt/UDISK/joypad.config \
         mnt/UDISK/joypad_right.config \
@@ -103,11 +103,11 @@ case "$selected_action" in
 
 "Restore")
 
-    echo "Restore mode"
+    echo "Restore mode for $current_device"
 
     # If not in command line mode, ask the user to select the backup file
     if [ -z "$ARCHIVE_PATH" ]; then
-        selector_output=$(selector -fs 150 -t "Choose a backup file to restore:" -d "/mnt/SDCARD/System/backups/firmware_settings/$current_device/")
+        selector_output=$(selector -fs 150 -t "Choose a backup file to restore:" -d "/mnt/SDCARD/System/backups/firmware_settings/$current_device/" | grep "You selected")
         echo "$cleaned_input" | grep -q "No file selected" && {
             infoscreen.sh -m "Exiting..."
             exit 0
@@ -123,13 +123,14 @@ case "$selected_action" in
 
     # If not in command line mode, ask what to restore
     if [ -z "$restore_type" ]; then
-        selector_output=$(selector -fs 200 -t "Choose what you want to restore:" -c "All" "Wifi settings" "Joystick calibration" "MainUI settings")
+        selector_output=$(selector -fs 200 -t "Choose what you want to restore:" -c "All" "Wifi settings" "Joystick calibration" "MainUI settings" "Command history" | grep "You selected")
         selected_restore="${selector_output#*: }"
         case "$selected_restore" in
         "All") restore_type="all" ;;
         "Wifi settings") restore_type="wifi" ;;
         "Joystick calibration") restore_type="joystick" ;;
         "MainUI settings") restore_type="mainui" ;;
+        "Command history") restore_type="history" ;;
         *)
             infoscreen.sh -m "Exiting..."
             exit
@@ -143,7 +144,7 @@ case "$selected_action" in
         restore_message="All settings restored."
         ;;
     "wifi")
-        restore_file "/etc/wifi/wpa_supplicant.conf"
+        restore_file "/$wpa_supplicant_PATH"
         restore_message="Wifi settings restored."
         ;;
     "joystick")
@@ -154,6 +155,10 @@ case "$selected_action" in
     "mainui")
         restore_file "/mnt/UDISK/system.json"
         restore_message="MainUI settings restored."
+        ;;
+    "history")
+        restore_file "/root/.ash_history"
+        restore_message="Command history restored."
         ;;
     *)
         echo "No valid option selected."

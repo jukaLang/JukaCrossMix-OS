@@ -5,8 +5,11 @@ cpufreq.sh ondemand 4 7
 cd drastic
 export HOME="$PWD"
 
+# Add LOG_FILE detection
+LOG_FILE="/tmp/log/messages"
+[ -f "/tmp/messages" ] && LOG_FILE="/tmp/messages"
 
-LAUNCHER=$(grep -i "dowork 0x" "/tmp/log/messages" | tail -n 1)
+LAUNCHER=$(grep -i "dowork 0x" "$LOG_FILE" | tail -n 1)
 
 
 # Advanced mode

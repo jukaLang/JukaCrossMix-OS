@@ -2,7 +2,11 @@
 source /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
 source /mnt/SDCARD/System/etc/ex_config
 
-selected_mode=$(grep "dowork 0x" "/tmp/log/messages" | tail -n 1 | sed -e 's/.*: \(.*\) dowork 0x.*/\1/')
+# Add LOG_FILE detection
+LOG_FILE="/tmp/log/messages"
+[ -f "/tmp/messages" ] && LOG_FILE="/tmp/messages"
+
+selected_mode=$(grep "dowork 0x" "$LOG_FILE" | tail -n 1 | sed -e 's/.*: \(.*\) dowork 0x.*/\1/')
 case "$selected_mode" in
 "High Performance")
 	cpufreq.sh performance 2 7
@@ -16,7 +20,7 @@ case "$selected_mode" in
 esac
 
 if [ -f "/tmp/cmd_to_run.sh" ] && ! grep -q "dowork 0x" "/tmp/cmd_to_run.sh"; then
-    sed -i "1s|^|echo \": $selected_mode dowork 0x24a00e60\" > /tmp/log/messages\n|" "/tmp/cmd_to_run.sh"
+    sed -i "1s|^|echo \": $selected_mode dowork 0x24a00e60\" > $LOG_FILE\n|" "/tmp/cmd_to_run.sh"
 fi
 
 cd /mnt/SDCARD/Roms/PORTS

@@ -1,9 +1,9 @@
 #!/bin/sh
 Current_FW_Revision=$(grep 'DISTRIB_DESCRIPTION' /etc/openwrt_release | cut -d '.' -f 3)
 
-read -r Current_device </etc/trimui_device.txt
+read -r current_device </etc/trimui_device.txt
 
-if [ "$Current_device" = "tsp" ]; then
+if [ "$current_device" = "tsp" ]; then
 
     if [ "$Current_FW_Revision" -gt "20240413" ] && [ "$Current_FW_Revision" -lt "20250505" ]; then # on firmware hotfix 9 there is less space than before on /dev/mmcblk0p1 so we avoid to flash the logo
         /mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -m "Bootlogo is not compatible with this firmware ($Current_FW_Revision)." -t 3

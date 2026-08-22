@@ -11,7 +11,11 @@ EMU_DIR="$PWD"
 
 export LD_LIBRARY_PATH="$PM_DIR:$EMU_DIR:$LD_LIBRARY_PATH"
 
-Launcher=$(grep -i "dowork 0x" "/tmp/log/messages" | tail -n 1)
+# Add LOG_FILE detection
+LOG_FILE="/tmp/log/messages"
+[ -f "/tmp/messages" ] && LOG_FILE="/tmp/messages"
+
+Launcher=$(grep -i "dowork 0x" "$LOG_FILE" | tail -n 1)
 if echo "$Launcher" | grep -q "Rice"; then
     set_ra_cfg.sh "$EMU_DIR/mupen64plus.cfg" "VideoPlugin" "mupen64plus-video-rice.so"
 else
@@ -25,7 +29,7 @@ else
 fi
 
 if [ -f "/tmp/cmd_to_run.sh" ] && ! grep -q "dowork 0x" "/tmp/cmd_to_run.sh"; then
-    sed -i "1s|^|echo \"$Launcher\" > /tmp/log/messages\n|" "/tmp/cmd_to_run.sh"
+    sed -i "1s|^|echo \"$Launcher\" > $LOG_FILE\n|" "/tmp/cmd_to_run.sh"
 fi
 
 case "$*" in

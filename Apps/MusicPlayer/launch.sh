@@ -3,6 +3,8 @@ export PATH="/mnt/SDCARD/System/bin:/mnt/SDCARD/System/usr/trimui/scripts:$PATH"
 
 CFG="./player_choice.cfg"
 
+chmod a+x /usr/trimui/apps/musicplayer/launch.sh &
+
 # Checks if a default choice has already been saved
 if [ -f "$CFG" ]; then
     button_state.sh L

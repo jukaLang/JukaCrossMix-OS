@@ -45,7 +45,7 @@ determine_image_path() {
 image=$(determine_image_path "bg-plain.png")
 
 
-selector_output=$(selector  -t "Select a language" -i "$image" -c "Cornish (kw)" "Catalan (ca)" "Deutsch (de)" "English (en)" "Espanol (es)" "Francais (fr)" "Italiano (it)" "Nederlands (nl)" "Latin (la)" "Portugues Brasileiro (pt-br)")
+selector_output=$(selector  -t "Select a language" -i "$image" -c "Cornish (kw)" "Catalan (ca)" "Deutsch (de)" "English (en)" "Espanol (es)" "Francais (fr)" "Italiano (it)" "Nederlands (nl)" "Latin (la)" "Portugues Brasileiro (pt-br)" | grep "You selected")
 selector_output="${selector_output#*: }"
 
 language=$(echo "$selector_output" | sed -n 's/.*(\(.*\)).*/\1/p')

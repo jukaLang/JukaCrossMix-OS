@@ -142,18 +142,26 @@ determine_image_path() {
     image_name="$1"
     base_path="/mnt/SDCARD/trimui/res/crossmix-os"
 
+    read -r device_type </etc/trimui_device.txt
+    DeviceSuffix="_${device_type}"
+
     # Check if image is a full path
     if [ -f "$image_name" ]; then
         base_path=$(dirname "$image_name")
+        image_name=$(basename "$image_name")
+    fi
 
-        # Check if themed image exists
-        themed_image="$base_path/style_$CrossMix_Style/$(basename "$image_name")"
+    # Check if "theme + device" image exists
+    themed_image="$base_path/style_$CrossMix_Style/${image_name%.*}_${device_type}.${image_name##*.}"
         if [ -f "$themed_image" ]; then
             echo "$themed_image"
             return
         fi
 
-        echo "$image_name"
+    # Check if "device" only image exists
+    themed_image="$base_path/${image_name%.*}_${device_type}.${image_name##*.}"
+    if [ -f "$themed_image" ]; then
+        echo "$themed_image"
         return
     fi
 
@@ -179,7 +187,7 @@ image=$(determine_image_path "$image")
 
 # Set the library path
 PATH="/mnt/SDCARD/System/bin:$PATH"
-export LD_LIBRARY_PATH="/mnt/SDCARD/System/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="/usr/lib:/mnt/SDCARD/System/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
 
 touch /var/trimui_inputd/sticks_disabled
 

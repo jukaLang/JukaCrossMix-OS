@@ -13,7 +13,11 @@ extlist=$(jq -r '.extlist' "$music_configfile")
 
 sed -i 's/^Gmu.AutoPlayOnProgramStart=no$/Gmu.AutoPlayOnProgramStart=yes/' "$settings_file"
 
-Launcher=$(grep -i "dowork 0x" "/tmp/log/messages" | tail -n 1)
+# Add LOG_FILE detection
+LOG_FILE="/tmp/log/messages"
+[ -f "/tmp/messages" ] && LOG_FILE="/tmp/messages"
+
+Launcher=$(grep -i "dowork 0x" "$LOG_FILE" | tail -n 1)
 
 mkdir -p /mnt/SDCARD/Apps/MusicPlayer/.local/share/gmu/
 

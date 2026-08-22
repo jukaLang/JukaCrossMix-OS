@@ -28,7 +28,7 @@ mkdir -p /etc/ssl/certs/
 cp -vf "$UPDATE_DIR/ca-certificates.crt" /etc/ssl/certs/
 
 # Install new busybox
-cp -vf /bin/busybox /mnt/SDCARD/System/bin/busybox.bak
+cp -vf /bin/busybox /bin/busybox.old
 /mnt/SDCARD/System/bin/rsync /mnt/SDCARD/System/usr/trimui/scripts/busybox /bin/busybox
 
 ln -vs "/bin/busybox" "/bin/bash"
@@ -54,7 +54,11 @@ for libname in /usr/trimui/lib/libSDL*; do
 done
 
 # Unzip python
-unzip -o -d "/mnt/SDCARD/System/" "$UPDATE_DIR/python.zip" > /mnt/SDCARD/System/updates/python.log
+if [ ! -f "/mnt/SDCARD/System/bin/python3" ]; then
+    # Unzip python
+    unzip -o -d "/mnt/SDCARD/System/" "$UPDATE_DIR/python.zip" > /mnt/SDCARD/System/updates/python.log
+fi
+
 
 # FOOTER
 pkill -f sdl2imgshow

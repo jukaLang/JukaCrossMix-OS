@@ -40,7 +40,11 @@ else
     fi
 fi
 
-echo "load_launcher.sh : $Launcher_name dowork 0x" >>/tmp/log/messages
+# Add LOG_FILE detection
+LOG_FILE="/tmp/log/messages"
+[ -f "/tmp/messages" ] && LOG_FILE="/tmp/messages"
+
+echo "load_launcher.sh : $Launcher_name dowork 0x" >>"$LOG_FILE"
 {
     rm "/tmp/trimui_osd/slider_cpu_preset/curpreset"
     echo "0/3" >"/tmp/trimui_osd/slider_cpu_preset/status"
