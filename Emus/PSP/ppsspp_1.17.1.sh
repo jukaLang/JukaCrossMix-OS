@@ -22,9 +22,9 @@ if [ "$perfmode" = "1" ]; then
 else
     cpufreq.sh performance 6 6
 	echo "--- performance CPU mode enabled"
-	# sed -i "1s|^|echo \"$performance\" > /tmp/log/messages\n|" "/tmp/cmd_to_run.sh"
 fi
 
-
+# System/lib causes segfault with PPSSPP
+export LD_LIBRARY_PATH="/usr/trimui/lib"
 HOME=$PWD ./"$binfile" "$@"
 

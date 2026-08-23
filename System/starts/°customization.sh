@@ -245,19 +245,19 @@ echo "root:tina" | chpasswd
 
 ######################### Device Type customization #########################
 
-if [ -f "/tmp/device_changed" ]; then
-
-    # copy of the most up-to-date version of retroarch for this device
-    files=$(ls /mnt/SDCARD/RetroArch/ra64.trimui_${current_device}_*.bin 2>/dev/null)
+## Always ensure the correct RetroArch binary for this device
+files=$(ls /mnt/SDCARD/RetroArch/ra64.trimui_${current_device}_*.bin 2>/dev/null)
+latest_file=$(echo "$files" | sort -V | tail -n 1)
+# Brick Pro has no dedicated RetroArch build yet: use the newest Brick one
+if [ -z "$latest_file" ] && [ "$current_device" = "brickpro" ]; then
+    files=$(ls /mnt/SDCARD/RetroArch/ra64.trimui_brick_*.bin 2>/dev/null)
     latest_file=$(echo "$files" | sort -V | tail -n 1)
-    # Brick Pro has no dedicated RetroArch build yet: use the newest Brick one
-    if [ -z "$latest_file" ] && [ "$current_device" = "brickpro" ]; then
-        files=$(ls /mnt/SDCARD/RetroArch/ra64.trimui_brick_*.bin 2>/dev/null)
-        latest_file=$(echo "$files" | sort -V | tail -n 1)
-    fi
-    if [ -n "$latest_file" ]; then
-        cp "$latest_file" "/mnt/SDCARD/RetroArch/ra64.trimui"
-    fi
+fi
+if [ -n "$latest_file" ]; then
+    cp "$latest_file" "/mnt/SDCARD/RetroArch/ra64.trimui"
+fi
+
+if [ -f "/tmp/device_changed" ]; then
 
     # OSD customization (Brick / Brick Pro ship osdlayout_brick*.json and keep their stock OSD binaries)
     cp /mnt/SDCARD/System/usr/trimui/res/osd/osdlayout_${current_device}.json /usr/trimui/osd/osdlayout.json
