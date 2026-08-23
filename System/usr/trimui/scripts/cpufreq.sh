@@ -41,6 +41,8 @@ show_info() {
 
 	min_id=$(freq_to_id "$current_min_freq")
 	max_id=$(freq_to_id "$current_max_freq")
+	[ -z "$min_id" ] && min_id="?"
+	[ -z "$max_id" ] && max_id="?"
 
 	num_cores=$(ls -d /sys/devices/system/cpu/cpu[0-9]* 2>/dev/null | wc -l)
 	active_count=$(grep -h ^1$ /sys/devices/system/cpu/cpu*/online 2>/dev/null | wc -l)
@@ -93,7 +95,7 @@ if [ -n "$min_id" ] && [ -n "$max_id" ]; then
 fi
 
 # Validate frequency settings
-if [ "$governor" != "interactive" ] && [ "$governor" != "ondemand" ] && [ "$governor" != "performance" ] && [ "$governor" != "powersave" ] && [ "$governor" != "conservative" ]; then
+if [ "$governor" != "interactive" ] && [ "$governor" != "ondemand" ] && [ "$governor" != "performance" ] && [ "$governor" != "powersave" ] && [ "$governor" != "conservative" ] && [ "$governor" != "schedutil" ]; then
 	echo "cpufreq.sh: Invalid governor."
 	exit 1
 elif [ $min_id -lt 0 ] || [ $min_id -gt 8 ]; then
@@ -126,6 +128,37 @@ if [ $min_freq -gt "$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq)
 else
 	echo $min_freq >/sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
 	echo $max_freq >/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+fi
+
+# Tune the scaling governor for gaming workloads. The kernel defaults are
+# jittery: ondemand down-throttles the moment load dips, so after a menu
+# pause a game can stay stuck at a low frequency. These best-effort writes
+# make the governor ramp up fast and hold high frequencies longer. Kernels
+# that do not expose a tunable simply ignore the write.
+if [ "$governor" = "ondemand" ]; then
+	TUNE_DIR=/sys/devices/system/cpu/cpufreq/ondemand
+	[ -d "$TUNE_DIR" ] && {
+		echo 90  >"$TUNE_DIR/up_threshold"         2>/dev/null
+		echo 10  >"$TUNE_DIR/sampling_down_factor" 2>/dev/null
+		echo 10000 >"$TUNE_DIR/sampling_rate"      2>/dev/null
+		echo 0   >"$TUNE_DIR/ignore_nice_load"     2>/dev/null
+	}
+fi
+if [ "$governor" = "conservative" ]; then
+	TUNE_DIR=/sys/devices/system/cpu/cpufreq/conservative
+	[ -d "$TUNE_DIR" ] && {
+		echo 80  >"$TUNE_DIR/up_threshold"           2>/dev/null
+		echo 30  >"$TUNE_DIR/down_threshold"         2>/dev/null
+		echo 5   >"$TUNE_DIR/freq_step"              2>/dev/null
+	}
+fi
+if [ "$governor" = "interactive" ]; then
+	TUNE_DIR=/sys/devices/system/cpu/cpufreq/interactive
+	[ -d "$TUNE_DIR" ] && {
+		echo 90     >"$TUNE_DIR/go_hispeed_load" 2>/dev/null
+		echo 20000  >"$TUNE_DIR/min_sample_time" 2>/dev/null
+		echo 10000  >"$TUNE_DIR/timer_rate"      2>/dev/null
+	}
 fi
 
 # Optionally set number of active CPU cores
