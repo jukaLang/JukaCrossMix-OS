@@ -4,7 +4,7 @@ if [ ! "${1##*.}" = neo ]; then
   exit 1
 fi
 
-source /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
+. /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
 cpufreq.sh ondemand 2 6
 
 

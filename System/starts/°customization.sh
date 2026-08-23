@@ -9,7 +9,7 @@ fi
 
 ################ CrossMix-OS Version Splashscreen ################
 read -r version </mnt/SDCARD/System/usr/trimui/crossmix-version.txt
-/mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -i "$Current_bg" -m "CrossMix OS v$version" &
+/mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -i "$Current_bg" -m "JukaMix OS v$version" &
 
 ################ CrossMix-OS internal storage Customization ################
 read -r FW_patched_version </usr/trimui/crossmix-version.txt
@@ -68,7 +68,7 @@ if [ "$version" != "$FW_patched_version" ]; then
     fi
 
     # patching language files for MainUI device specific texts
-    source /mnt/SDCARD/System/etc/ex_config # required to initialize python3 environment for lang_patches.sh
+    . /mnt/SDCARD/System/etc/ex_config # required to initialize python3 environment for lang_patches.sh
     /mnt/SDCARD/System/usr/trimui/scripts/lang_patches.sh "$current_device"
 
     # custom shutdown script for "Resume at Boot"
@@ -163,7 +163,7 @@ if [ "$version" != "$FW_patched_version" ]; then
             if [ ! -f /mnt/UDISK/system.json ]; then
                 cp /mnt/SDCARD/System/usr/trimui/scripts/MainUI_default_system.json /mnt/UDISK/system.json
             else
-                /usr/trimui/bin/systemval theme "/mnt/SDCARD/Themes/CrossMix - OS/"
+                /usr/trimui/bin/systemval theme "/mnt/SDCARD/Themes/JukCrossMix-OS/"
                 /usr/trimui/bin/systemval menustylel1 1
                 /usr/trimui/bin/systemval bgmvol 10
                 /usr/trimui/bin/systemval picturesize 100
@@ -172,7 +172,7 @@ if [ "$version" != "$FW_patched_version" ]; then
     fi
 
     if [ "$Current_Theme" = "../res/" ]; then
-        /usr/trimui/bin/systemval theme "/mnt/SDCARD/Themes/CrossMix - OS/"
+        /usr/trimui/bin/systemval theme "/mnt/SDCARD/Themes/JukCrossMix-OS/"
     fi
 
     # hide netplay tab in MainUI

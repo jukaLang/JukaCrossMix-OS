@@ -6,7 +6,7 @@ if [ ! -f /mnt/SDCARD/System/usr/trimui/scripts/update_common.sh ]; then
   /mnt/SDCARD/System/bin/7zz e "$UPDATE_FILE" "System/usr/trimui/scripts/update_common.sh" -o/mnt/SDCARD/System/usr/trimui/scripts -y
 fi 
 
-source /mnt/SDCARD/System/usr/trimui/scripts/update_common.sh
+. /mnt/SDCARD/System/usr/trimui/scripts/update_common.sh
 
 echo performance >/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
 echo 1608000 >/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
@@ -54,7 +54,14 @@ mkdir -p "$BCK_DIR"
 sync
 
 LOG_FILE="/mnt/SDCARD/_Updates/CrossMix_v${update_version}_${timestamp}.log"
-exec > >(tee -a "$LOG_FILE") 2>&1
+# Mirror all output to the log file while keeping it visible (POSIX sh)
+_LOG_PIPE="/tmp/$$.tee.pipe"
+rm -f "$_LOG_PIPE"
+mkfifo "$_LOG_PIPE"
+tee -a "$LOG_FILE" <"$_LOG_PIPE" &
+_TEE_PID=$!
+exec >"$_LOG_PIPE" 2>&1
+trap 'rm -f "$_LOG_PIPE"; kill "$_TEE_PID" 2>/dev/null' 0 1 2 3 15
 
 # echo "==============  Updating CrossMix-OS v$Local_CrossMixVersion to v$update_version  =============="
 echo "${BLUE}======  Updating CrossMix-OS v$Local_CrossMixVersion to v$update_version  ======${NC}"
@@ -62,7 +69,7 @@ echo "${BLUE}======  Updating CrossMix-OS v$Local_CrossMixVersion to v$update_ve
 check_available_space "5000"
     if [ $? -eq 1 ]; then
         echo -ne "${YELLOW}"
-        read -n 1 -s -r -p "Press A to exit"
+        printf '%s' "Press A to exit"; read -r _
         exit 3
     fi
 
@@ -250,21 +257,21 @@ chmod a+x "$output_file"
 # Restore click sound current state
 click_off="$BCK_DIR/Themes/$current_theme/sound/click-off.wav"
 click="$BCK_DIR/Themes/$current_theme/sound/click.wav"
-if [[ -f "$click_off" && ! -f "$click" ]]; then
+if [ -f "$click_off" ] && [ ! -f "$click" ]; then
 	"/mnt/SDCARD/Apps/SystemTools/Menu/SOUND##CLICK (state)/Click sound - Disable.sh"
 fi
 
 # Restore background music current state
 bgm_off="$BCK_DIR/Themes/$current_theme/sound/bgm-off.mp3"
 bgm="$BCK_DIR/Themes/$current_theme/sound/bgm.mp3"
-if [[ -f "$bgm_off" && ! -f "$bgm" ]]; then
+if [ -f "$bgm_off" ] && [ ! -f "$bgm" ]; then
 	"/mnt/SDCARD/Apps/SystemTools/Menu/SOUND##MUSIC (state)/Music - Disable.sh"
 fi
 
 # Restore top left logo current state
 logo_off="$BCK_DIR/Themes/$current_theme/skin/nav-logo-off.png"
 logo="$BCK_DIR/Themes/$current_theme/skin/nav-logo.png"
-if [[ -f "$logo_off" && ! -f "$logo" ]]; then
+if [ -f "$logo_off" ] && [ ! -f "$logo" ]; then
 	"/mnt/SDCARD/Apps/SystemTools/Menu/Imgs/ADVANCED SETTINGS##TOP LEFT LOGO (state)/Top-left logo - Disable.png"
 fi
 

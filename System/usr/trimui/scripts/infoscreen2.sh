@@ -56,7 +56,7 @@ position="middle-center"
 
 Current_Theme=$(basename "$(/usr/trimui/bin/systemval theme)")
 if [ "$Current_Theme" = "res" ]; then
-    Current_Theme="CrossMix - OS"
+    Current_Theme="JukCrossMix-OS"
 fi
 CrossMix_Style=$(/mnt/SDCARD/System/bin/jq -r '.["CROSSMIX STYLE"]' "/mnt/SDCARD/System/etc/crossmix.json")
 

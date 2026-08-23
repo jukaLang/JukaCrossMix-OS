@@ -92,7 +92,7 @@ check_firmware_crc() {
     local firmware_file="$2"
 
     message="${message}Checking firmware integrity........"
-    /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -sp -ff "/mnt/SDCARD/Themes/CrossMix - OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Wait.jpg" &
+    /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -sp -ff "/mnt/SDCARD/Themes/JukCrossMix-OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Wait.jpg" &
 
     # Extract CRC from the 7z archive
     ARCHIVE_CRC=$(/mnt/SDCARD/System/bin/7zz l "$firmware_path" -slt "$firmware_file" | grep "CRC = " | awk '{print $3}' | tr 'a-f' 'A-F')
@@ -116,7 +116,7 @@ diagnose() {
     pkill presenter
     sleep 0.5
     message="${message}\nChecking filesystem..."
-    /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -sp -ff "/mnt/SDCARD/Themes/CrossMix - OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Wait.jpg" &
+    /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -sp -ff "/mnt/SDCARD/Themes/JukCrossMix-OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Wait.jpg" &
     check_filesystem
     FW_Size=$(/mnt/SDCARD/System/bin/7zz l "$FW_ARCHIVE_FILE" -slt "$FIRMWARE_FILENAME" | awk ' /^Path = / {found=1; next}  found && /^Size = / { print $3; exit }
 ')
@@ -128,14 +128,14 @@ diagnose() {
         sleep 1.5
         pkill presenter
         sleep 0.5
-        /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/CrossMix - OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Fail.jpg" -k rout A "Exit"
+        /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/JukCrossMix-OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Fail.jpg" -k rout A "Exit"
     else
         echo "Sufficient space available."
         message="${message}done\nSufficient space available.\nYou have enough space to update firmware."
         sleep 1.5
         pkill presenter
         sleep 0.5
-        /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/CrossMix - OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Fail.jpg" -k rout A "Exit"
+        /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/JukCrossMix-OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Fail.jpg" -k rout A "Exit"
     fi
 }
 
@@ -149,7 +149,7 @@ else
 
     if [ "$Current_FW_Revision" -lt "$Required_FW_Revision" ]; then
 
-        source /mnt/SDCARD/System/usr/trimui/scripts/common_functions.sh
+        . /mnt/SDCARD/System/usr/trimui/scripts/common_functions.sh
 
         pgrep -f trimui_inputd >/dev/null || { cd "/mnt/SDCARD/trimui/app" && ./trimui_inputd & } # we need input
 
@@ -211,7 +211,7 @@ else
             pkill presenter
             sleep 0.5
             message="${message}Firmware compressed file not found\nCanceling update.\n"
-            /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/CrossMix - OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Fail.jpg" -k rout A "Exit"
+            /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/JukCrossMix-OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Fail.jpg" -k rout A "Exit"
             exit 1
         fi
 
@@ -233,7 +233,7 @@ else
             message="${message}\n \nExtracting new firmware v$Required_FW_Version..."
             pkill presenter
             sleep 0.5
-            /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -sp -ff "/mnt/SDCARD/Themes/CrossMix - OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Wait.jpg" &
+            /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -sp -ff "/mnt/SDCARD/Themes/JukCrossMix-OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Wait.jpg" &
 
             /mnt/SDCARD/System/usr/trimui/scripts/cpufreq.sh ondemand 3 7
             if ! /mnt/SDCARD/System/bin/7zz x "$FW_ARCHIVE_FILE" -o"/mnt/SDCARD" -y; then
@@ -241,7 +241,7 @@ else
                 pkill presenter
                 sleep 0.5
                 message="${message}\nFirmware extraction failed, canceling update.\n \nPress X to diagnose."
-                /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/CrossMix - OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Fail.jpg" -k rout A "" -k rout X ""
+                /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/JukCrossMix-OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Fail.jpg" -k rout A "" -k rout X ""
                 rm "/mnt/SDCARD/$FIRMWARE_FILE"
                 diagnose
                 exit 1
@@ -258,7 +258,7 @@ else
                 message="${message}\nFirmware CRC check has failed, canceling update.\nPress X to diagnose."
                 pkill presenter
                 sleep 0.5
-                /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/CrossMix - OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Fail.jpg" -k rout A "" -k rout X ""
+                /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/JukCrossMix-OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Fail.jpg" -k rout A "" -k rout X ""
                 rm "/mnt/SDCARD/$FIRMWARE_FILE"
                 diagnose
                 exit 1
@@ -280,12 +280,12 @@ else
             pkill presenter
             sleep 0.5
             message="${message}\n \nFirmware settings saved:\n$Backup_file"
-            /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/CrossMix - OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Ready.jpg" &
+            /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/JukCrossMix-OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Ready.jpg" &
             sleep 1.5
             pkill presenter
             sleep 0.5
             message="${message}\nReady for update!\n \nPlease read instructions at the right\nto launch your firmware upgrade."
-            /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/CrossMix - OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Ready.jpg" -k rout A "" -k rin B ""
+            /mnt/SDCARD/System/usr/trimui/scripts/infoscreen2.sh -m "$message" -fs 12 -fi 0 -p top-left -fb -ff "/mnt/SDCARD/Themes/JukCrossMix-OS/wqy-microhei.ttf" -i "/mnt/SDCARD/trimui/firmwares/FW_Screen_Ready.jpg" -k rout A "" -k rin B ""
 
             if [ "$?" -eq 14 ]; then # A has been pressed
                 pkill presenter

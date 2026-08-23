@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if [ -z "$SSH_CONNECTION" ]; then
     nano "$@"

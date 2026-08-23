@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 export PATH="/mnt/SDCARD/System/bin:/mnt/SDCARD/System/usr/trimui/scripts:$PATH"
 export LD_LIBRARY_PATH="/mnt/SDCARD/System/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
 
@@ -15,14 +15,26 @@ cp $FAV_FILE "${FAV_FILE}_$timestamp"
 
 sed -i 's/^{.*,"label/{"label/' "$FAV_FILE"
 awk '{
-  match ($0, /sublabel":"([^"]*)"/, sublabel)
-  match ($0, /rompath":"([^"]*)"/, rompath)
-  if (sublabel[1] ~ /^[[:space:]]*$/) {
-    match(rompath[1], /.*\/Roms\/([^\/]+)\/.*/, emudir)
-    gsub(/sublabel":"[^"]*"/, "sublabel\":\"" emudir[1] "\"")
+  sublabel = ""
+  if (match($0, /sublabel":"[^"]*"/)) {
+    sublabel = substr($0, RSTART + 11, RLENGTH - 12)
+    gsub(/^[[:space:]]+|[[:space:]]+$/, "", sublabel)
+  }
+  if (sublabel == "") {
+    emudir = ""
+    if (match($0, /rompath":"[^"]*"/)) {
+      rp = substr($0, RSTART + 10, RLENGTH - 11)
+      n = split(rp, parts, "/")
+      for (i = 1; i <= n; i++) {
+        if (parts[i] == "Roms" && i < n) { emudir = parts[i + 1]; break }
+      }
+    }
+    if (emudir != "") {
+      sub(/sublabel":"[^"]*"/, "sublabel\":\"" emudir "\"")
+    }
   }
   print
-}' $FAV_FILE >favourite2_fixed.json
+}' "$FAV_FILE" >favourite2_fixed.json
 mv favourite2_fixed.json $FAV_FILE
 
 sync

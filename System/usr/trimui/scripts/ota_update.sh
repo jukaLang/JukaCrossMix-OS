@@ -1,5 +1,5 @@
 #!/bin/sh
-source /mnt/SDCARD/System/usr/trimui/scripts/update_common.sh
+. /mnt/SDCARD/System/usr/trimui/scripts/update_common.sh
 
 run_bootstrap() {
 	curl -k -s https://raw.githubusercontent.com/$GITHUB_REPOSITORY/main/_assets/scripts/ota_bootstrap.sh | sh
@@ -32,7 +32,7 @@ main() {
 			echo -ne "${GREEN}DONE${NC}\n\n\n"
 			echo -e "No hotfix available for CrossMix v$Local_CrossMixVersion.\n"
 			echo -ne "${YELLOW}"
-			read -n 1 -s -r -p "Press A to exit"
+			printf '%s' "Press A to exit"; read -r _
 		fi
 	fi
 	sleep 2

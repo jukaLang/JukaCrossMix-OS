@@ -28,7 +28,7 @@ check_connection() {
     else
         echo -e "${RED}FAIL${NC}\nError: https://github.com not reachable. Check your wifi connection."
         echo -ne "${YELLOW}"
-        read -n 1 -s -r -p "Press A to exit"
+        printf '%s' "Press A to exit"; read -r _
         exit 2
     fi
 }

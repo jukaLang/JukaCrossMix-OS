@@ -28,11 +28,13 @@ if [ -n "$Launcher_name" ]; then
 else
     # Look for the first valid launcher in launchlist
     if jq -e ".launchlist" "$EMU_DIR/config.json" >/dev/null 2>&1; then
+        jq -c '.launchlist[]' "$EMU_DIR/config.json" >/tmp/launchlist.$$
         while read launcher; do
             Launcher_name=$(echo "$launcher" | jq -r '.name')
             Launcher_command=$(echo "$launcher" | jq -r '.launch')
             if [ -n "$Launcher_command" ]; then break; fi
-        done < <(jq -c '.launchlist[]' "$EMU_DIR/config.json")
+        done < /tmp/launchlist.$$
+        rm -f /tmp/launchlist.$$
     else
         # Else use launch.sh as fallback
         Launcher_name=Default

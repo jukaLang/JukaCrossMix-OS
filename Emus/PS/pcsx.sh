@@ -1,5 +1,5 @@
 #!/bin/sh
-source /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
+. /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
 cpufreq.sh ondemand 3 7
 
 cd $RA_DIR/

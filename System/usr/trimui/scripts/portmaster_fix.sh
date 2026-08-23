@@ -20,7 +20,14 @@ fi
 timestamp=$(date +'%Y%m%d-%Hh%M')
 
 LOG_FILE="/mnt/SDCARD/System/updates/portmaster_fix_$timestamp.log"
-exec > >(tee -a "$LOG_FILE") 2>&1
+# Mirror all output to the log file while keeping it visible (POSIX sh)
+_LOG_PIPE="/tmp/$$.tee.pipe"
+rm -f "$_LOG_PIPE"
+mkfifo "$_LOG_PIPE"
+tee -a "$LOG_FILE" <"$_LOG_PIPE" &
+_TEE_PID=$!
+exec >"$_LOG_PIPE" 2>&1
+trap 'rm -f "$_LOG_PIPE"; kill "$_TEE_PID" 2>/dev/null' 0 1 2 3 15
 
 echo -e "\n==== PortMaster Fix started at $timestamp ==="
 
@@ -256,7 +263,7 @@ rm "/etc/ex_update/00X"
 
 sleep 3
 
-source /mnt/SDCARD/System/etc/ex_config
+. /mnt/SDCARD/System/etc/ex_config
 /mnt/SDCARD/System/bin/ex_update.sh
 
 ########################################### Reset & Backup PortMaster configuration files ###########################################

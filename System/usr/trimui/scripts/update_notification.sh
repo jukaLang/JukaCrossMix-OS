@@ -5,7 +5,7 @@
 # - Detects newer major/minor versions and sets flags consumed by UI scripts
 
 # Common env, paths, helpers
-source /mnt/SDCARD/System/usr/trimui/scripts/update_common.sh
+. /mnt/SDCARD/System/usr/trimui/scripts/update_common.sh
 
 # Set to 1 to write logs to file, 0 to print logs to console
 LOG_TO_FILE=0

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 XDG_DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
 
@@ -12,9 +12,9 @@ else
   controlfolder="/roms/ports/PortMaster"
 fi
 
-source $controlfolder/control.txt
+. $controlfolder/control.txt
 if [ -z ${TASKSET+x} ]; then
-  source $controlfolder/tasksetter
+  . $controlfolder/tasksetter
 fi
 
 get_controls

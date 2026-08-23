@@ -1,5 +1,5 @@
 #!/bin/sh
-source /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
+. /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
 export LD_LIBRARY_PATH="/usr/trimui/lib" # "/mnt/SDCARD/System/lib" = segfault
 
 # cwd is EMU_DIR

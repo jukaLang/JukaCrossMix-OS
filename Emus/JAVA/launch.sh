@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "$0 $*"
-source /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
+. /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
 
 # Environment setup
 export LD_LIBRARY_PATH=./lib:/mnt/SDCARD/System/lib:$LD_LIBRARY_PATH

@@ -68,7 +68,7 @@ if [ "$current_crc_Emus" != "$previous_crc_Emus" ] || [ "$current_crc_DB" != "$p
         config_json_path="${dir}config.json"
         subdir=$(basename "$dir")
 
-        if [[ "$subdir" == _* ]]; then
+        if [ "${subdir#_}" != "$subdir" ]; then
             continue
         fi
 

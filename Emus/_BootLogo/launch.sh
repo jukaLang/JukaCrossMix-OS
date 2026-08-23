@@ -7,16 +7,21 @@ MOUNT_POINT="/mnt/emmcblk0p1"
 Current_FW_Revision=$(grep 'DISTRIB_DESCRIPTION' /etc/openwrt_release | cut -d '.' -f 3)
 read -r current_device </etc/trimui_device.txt
 
-if [ "$current_device" = "tsp" ]; then
-
+case "$current_device" in
+tsp)
     if [ "$Current_FW_Revision" -gt "20240413" ] && [ "$Current_FW_Revision" -lt "20250505" ]; then # on firmware hotfix 9 there is less space than before on /dev/mmcblk0p1 so we avoid to flash the logo
         /mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -m "Bootlogo is not compatible with this firmware ($Current_FW_Revision)." -t 3
         exit 1
     fi
     src_dir="/mnt/SDCARD/Apps/BootLogo/Images_1280x720/"
-else
+    ;;
+tsps)
+    src_dir="/mnt/SDCARD/Apps/BootLogo/Images_1280x720/"
+    ;;
+*)
     src_dir="/mnt/SDCARD/Apps/BootLogo/Images_1024x768/"
-fi
+    ;;
+esac
 
 LD_LIBRARY_PATH="/mnt/SDCARD/System/lib:/usr/trimui/lib:/mnt/SDCARD/System/bin/imagemagick/lib64:$LD_LIBRARY_PATH"
 export MAGICK_CODER_MODULE_PATH="/mnt/SDCARD/System/bin/imagemagick/lib64/ImageMagick-6.9.10/modules-Q16/coders/"

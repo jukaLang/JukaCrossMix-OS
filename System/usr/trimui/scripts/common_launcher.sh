@@ -54,12 +54,12 @@ fi
 
 /mnt/SDCARD/System/usr/trimui/scripts/button_state.sh Y
 if [ $? -eq 10 ]; then
-    source /mnt/SDCARD/System/usr/trimui/scripts/romscripts/.romscript_launcher.sh
+    . /mnt/SDCARD/System/usr/trimui/scripts/romscripts/.romscript_launcher.sh
     exit
 fi
 
 dir=/mnt/SDCARD/System/usr/trimui/scripts
-source $dir/save_launcher.sh
+. $dir/save_launcher.sh
 
 if [ -z "$2" ]; then
     /mnt/SDCARD/System/bin/activities time "$1" $$ &
@@ -68,7 +68,7 @@ fi
 if grep -q ra64.trimui "$0"; then
     RA_DIR="/mnt/SDCARD/RetroArch"
     export PATH=$PATH:$RA_DIR
-    source $dir/FolderOverrideFinder.sh
+    . $dir/FolderOverrideFinder.sh
     ra_audio_switcher.sh
     touch /var/trimui_inputd/ra_hotkey
 else

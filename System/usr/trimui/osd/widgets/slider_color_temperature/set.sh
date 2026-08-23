@@ -2,7 +2,7 @@
 # echo $*  # args (only one: 0 left, 1 right)
 # echo $#  # number of args
 PATH="/mnt/SDCARD/System/usr/trimui/scripts:/mnt/SDCARD/System/bin:$PATH"
-source /mnt/SDCARD/System/etc/nightmode.conf
+. /mnt/SDCARD/System/etc/nightmode.conf
 
 varname="color_temperature"
 osd_varname="slider_color_temperature"
@@ -49,7 +49,7 @@ echo "$Cur_Value/$Max_Value" >/tmp/trimui_osd/$osd_varname/status
 # echo $#
 PATH="/mnt/SDCARD/System/usr/trimui/scripts:/mnt/SDCARD/System/bin:$PATH"
 
-source /mnt/SDCARD/System/etc/nightmode.conf
+. /mnt/SDCARD/System/etc/nightmode.conf
 varname="color_temperature"
 osd_varname="slider_color_temperature"
 Cur_Value=$color_temperature

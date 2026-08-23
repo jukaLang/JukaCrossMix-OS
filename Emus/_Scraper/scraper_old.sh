@@ -32,7 +32,7 @@ fi
 
 # Launch the scraping task in the background
 cd "/mnt/SDCARD/Roms/$1"
-HOME=/mnt/SDCARD/Apps/Scraper/ /mnt/SDCARD/System/bin/scraper -img_workers 3 -refresh -thumb_only -img_format png -download_images -image_suffix "" -image_dir="/mnt/SDCARD/Imgs/$1" -max_height 500 -max_width 400 -output_file "/mnt/SDCARD/Imgs/$1/gamelist.xml" &> "$log_file" &
+HOME=/mnt/SDCARD/Apps/Scraper/ /mnt/SDCARD/System/bin/scraper -img_workers 3 -refresh -thumb_only -img_format png -download_images -image_suffix "" -image_dir="/mnt/SDCARD/Imgs/$1" -max_height 500 -max_width 400 -output_file "/mnt/SDCARD/Imgs/$1/gamelist.xml" > "$log_file" 2>&1 &
 SCRAP_PID=$!
 
 

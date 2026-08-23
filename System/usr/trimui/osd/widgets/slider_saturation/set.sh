@@ -3,7 +3,7 @@
 # echo $#
 PATH="/mnt/SDCARD/System/usr/trimui/scripts:/mnt/SDCARD/System/bin:$PATH"
 
-source /mnt/SDCARD/System/etc/nightmode.conf
+. /mnt/SDCARD/System/etc/nightmode.conf
 varname="enhance_saturation"
 osd_varname="slider_saturation"
 Cur_Value=$enhance_saturation

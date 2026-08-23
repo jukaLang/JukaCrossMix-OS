@@ -1,0 +1,76 @@
+name: JukaMix-OS Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-release:
+    name: Build release image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packaging tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq p7zip-full zip
+          # scripts call "7zz"; p7zip provides "7z"
+          sudo ln -sf /usr/bin/7z /usr/local/bin/7zz
+
+      - name: Fetch RetroArch cores
+        run: |
+          bash scripts/fetch_cores.sh \
+            || echo "::warning::Could not fetch RetroArch cores; the image will ship without them."
+
+      - name: Extract RetroArch cores
+        run: |
+          find RetroArch/.retroarch/cores -name "*.7z" -execdir 7zz x {} \; -execdir rm {} \; 2>/dev/null || true
+
+      - name: Validate image
+        run: bash scripts/validate_image.sh
+
+      - name: Clean image
+        run: |
+          # host-side tooling and repo metadata never ship on the SD card
+          rm -rf _assets scripts tests schemas packages .github .git
+          find . -type f -name ".gitkeep" -delete
+          rm -f README.md
+          ls -la
+          # bundle default RetroArch configuration for faster first boot
+          cd RetroArch && 7zz a default_config.7z retroarch.cfg .retroarch/config/* && cd ..
+
+      - name: Zip release
+        run: |
+          shopt -s dotglob
+          STAMP="$(date +%m%d%Y%H)"
+          echo "STAMP=${STAMP}" >> "$GITHUB_ENV"
+          zip -r "JukaMix_${STAMP}.zip" ./*
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ASSET="JukaMix_${STAMP}.zip"
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            # versioned release for tag pushes (vX.Y.Z)
+            gh release create "${{ github.ref_name }}" "$ASSET" \
+              --title "JukaMix v${STAMP}" \
+              --notes "Auto-built JukaMix image — $(date -u +'%Y-%m-%d %H:%M UTC')"
+          else
+            # continuous builds: refresh releases/latest so on-device
+            # update checkers always see the newest image
+            gh release delete JukaMix-latest --yes 2>/dev/null || true
+            gh release create JukaMix-latest "$ASSET" \
+              --title "JukaMix ${STAMP}" \
+              --latest \
+              --notes "Auto-built JukaMix image — $(date -u +'%Y-%m-%d %H:%M UTC')"
+          fi

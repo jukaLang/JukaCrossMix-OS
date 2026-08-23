@@ -1,7 +1,7 @@
 #!/bin/sh
 #echo $0 $*    # for debugging
 
-source /mnt/SDCARD/System/usr/trimui/scripts/common_functions.sh
+. /mnt/SDCARD/System/usr/trimui/scripts/common_functions.sh
 
 enable_wifi
 check_connection
@@ -47,7 +47,7 @@ Quota counters are reset every day at midnight (French time - UTC+2)
 
 EOF
 
-    # read -n 1 -s -r -p "Press A to continue"
+    # printf '%s' "Press A to continue"; read -r _
     # clear
 }
 
@@ -84,7 +84,7 @@ search_on_screenscraper() {
     if echo "$Head_api_result" | grep -q "API closed"; then
         echo -e "${RED}The Screenscraper API is currently down, please try again later.{NONE}"
         let Scrap_Fail++
-        # read -n 1 -s -r -p "Press A to exit"
+        # printf '%s' "Press A to exit"; read -r _
         return
     fi
 
@@ -372,7 +372,7 @@ for file in $(eval "find /mnt/SDCARD/Roms/$CurrentSystem -maxdepth 2 -type f \
     romNameNoExtension=${romName%.*}
     echo $romNameNoExtension
 
-    romNameTrimmed="${romNameNoExtension/".nkit"/}"
+    romNameTrimmed=$(printf '%s' "$romNameNoExtension" | sed 's/\.nkit//')
     romNameTrimmed="$(echo "$romNameTrimmed" | sed -E \
        	-e 's/(!|&|Disc|Rev|CD[0-9])//g' \
         -e 's| *[[(].*||' \
@@ -475,7 +475,7 @@ for file in $(eval "find /mnt/SDCARD/Roms/$CurrentSystem -maxdepth 2 -type f \
         output_file="$output_dir/$romNameNoExtension.png"
         temp_file="/tmp/${romNameNoExtension}.tmpdl"
         
-        MediaURL=${MediaURL//\"/}
+        MediaURL=$(printf '%s' "$MediaURL" | tr -d '"')
         
         wget "$MediaURL" -O "$temp_file"   >/dev/null 2>&1
         if [ $? -eq 0 ]; then

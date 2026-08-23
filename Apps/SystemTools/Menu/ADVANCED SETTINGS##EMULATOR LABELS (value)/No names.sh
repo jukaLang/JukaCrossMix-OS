@@ -20,7 +20,7 @@ counter=1
 for dir in /mnt/SDCARD/Emus/*/; do
   folder_name=$(basename "$dir")
   # Skip directories starting with an underscore
-  if [[ "$folder_name" == _* ]]; then
+  if [ "${folder_name#_}" != "$folder_name" ]; then
     echo "Skipping $folder_name"
     continue
   fi

@@ -19,5 +19,5 @@ echo -e "\nFull log available in $UPDATE_LOG"
 
 echo -ne "${GREEN}SD Card Check finished.${NC}\n"
 echo -ne "${YELLOW}"
-read -n 1 -s -r -p "Press A to exit"
+printf '%s' "Press A to exit"; read -r _
 killall -9 "$0"

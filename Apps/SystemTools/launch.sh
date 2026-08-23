@@ -179,7 +179,7 @@ for subdir in /mnt/SDCARD/Themes/*/; do
     cp "${subdir}/bg.png" "${THEME_imgs_directory}${subdir_name}.png"
   fi
 
-  if [ "$subdir_name" = "CrossMix - OS" ]; then
+  if [ "$subdir_name" = "CrossMix - OS" ] || [ "$subdir_name" = "JukCrossMix-OS" ]; then
     mv "${THEME_imgs_directory}${subdir_name}.png" "${THEME_imgs_directory}Default.png"
     continue
   fi

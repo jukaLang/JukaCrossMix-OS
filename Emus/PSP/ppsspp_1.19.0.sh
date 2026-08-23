@@ -1,5 +1,5 @@
 #!/bin/sh
-source /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
+. /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
 config_file="/mnt/SDCARD/Emus/PSP/PPSSPP/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
 
 # cwd is EMU_DIR

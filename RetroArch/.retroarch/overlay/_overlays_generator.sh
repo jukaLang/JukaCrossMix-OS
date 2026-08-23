@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # To create a new overlay, first create a core override, a content directory override or a game override.
 # Then run this script to create the correponding overlay config files
 # Then add your own png files with the same names as the created config files. 
@@ -17,10 +17,10 @@ cfg_count=0
 not_replaced_count=0
 
 # Recursively search for .cfg files in cfg_dir
-while IFS= read -r -d '' cfg_file; do
+find "$cfg_dir" -type f -name '*.cfg' ! -path "*VecX*" -print | while IFS= read -r cfg_file; do
     # Extract the prefix of the file name (without the .cfg extension)
     prefix=$(basename "$cfg_file" .cfg)
-	prefix=${prefix// /_}
+    prefix=$(printf '%s' "$prefix" | tr ' ' '_')
 
     # Path to the _max-ratio.cfg and _pixel-perfect.cfg files
     max_ratio_file="${overlay_dir}${prefix}_max-ratio.cfg"
@@ -53,7 +53,7 @@ while IFS= read -r -d '' cfg_file; do
     echo "Files created for $prefix :"
     echo "$max_ratio_file"
     echo "$pixel_perfect_file"
-done < <(find "$cfg_dir" -type f -name '*.cfg' ! -path "*VecX*" -print0)
+done
 
 # Display the total number of .cfg files found
 echo "Total number of .cfg files found: $cfg_count"

@@ -5,7 +5,7 @@ rm /mnt/SDCARD/Apps/PortMaster/PortMaster/config/._*
 
 controlfolder="/mnt/SDCARD/Apps/PortMaster/PortMaster"
 
-source /mnt/SDCARD/System/etc/ex_config
+. /mnt/SDCARD/System/etc/ex_config
 
 ESUDO=""
 ESUDOKILL="-1" # for 351Elec and EmuELEC use "-1" (numeric one) or "-k" 
@@ -17,7 +17,14 @@ CUR_TTY=/dev/tty0
 
 cd "$controlfolder"
 
-exec > >(tee "$controlfolder/log.txt") 2>&1
+# Mirror all output to log.txt while keeping it visible (POSIX sh)
+_LOG_PIPE="/tmp/$$.tee.pipe"
+rm -f "$_LOG_PIPE"
+mkfifo "$_LOG_PIPE"
+tee -a "$controlfolder/log.txt" <"$_LOG_PIPE" &
+_TEE_PID=$!
+exec >"$_LOG_PIPE" 2>&1
+trap 'rm -f "$_LOG_PIPE"; kill "$_TEE_PID" 2>/dev/null' 0 1 2 3 15
 
 export TERM=linux
 chmod 666 $CUR_TTY
@@ -39,7 +46,7 @@ pkill -f sdl2imgshow
 # This will automatically install zips found within the PortMaster/autoinstall directory using harbourmaster
 AUTOINSTALL=$(find "$controlfolder/autoinstall" -type f \( -name "*.zip" -o -name "*.squashfs" \))
 if [ -n "$AUTOINSTALL" ]; then
-  source "$controlfolder/PortMasterDialog.txt"
+  . "$controlfolder/PortMasterDialog.txt"
 
   GW=$(PortMasterIPCheck)
   PortMasterDialogInit "no-check"
@@ -64,11 +71,11 @@ if [ -n "$AUTOINSTALL" ]; then
 
   for file_name in "$controlfolder/autoinstall"/*.zip
   do
-    if [[ "$(basename $file_name)" == "PortMaster.zip" ]]; then
+    if [ "$(basename "$file_name")" = "PortMaster.zip" ]; then
       continue
     fi
 
-    if [[ $(PortMasterDialogResult "install" "$file_name") == "OKAY" ]]; then
+    if [ "$(PortMasterDialogResult "install" "$file_name")" = "OKAY" ]; then
       $ESUDO rm -f "$file_name"
       PortMasterDialog "message" "- SUCCESS: $(basename $file_name)"
     else
@@ -79,7 +86,7 @@ if [ -n "$AUTOINSTALL" ]; then
   if [ -f "$controlfolder/autoinstall/PortMaster.zip" ]; then
     file_name="$controlfolder/autoinstall/PortMaster.zip"
 
-    if [[ $(PortMasterDialogResult "install" "$file_name") == "OKAY" ]]; then
+    if [ "$(PortMasterDialogResult "install" "$file_name")" = "OKAY" ]; then
       $ESUDO rm -f "$file_name"
       PortMasterDialog "message" "- SUCCESS: $(basename $file_name)"
     else

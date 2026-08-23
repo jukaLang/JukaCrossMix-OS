@@ -62,7 +62,7 @@ if [ $RomDir = GZDoom ]; then
 	rm /var/trimui_inputd/swap_ab
 	sync
 else
-	source /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
+	. /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
 	cd $RA_DIR/
 
 	HOME=$RA_DIR/ $RA_DIR/ra64.trimui -v -L $RA_DIR/.retroarch/cores/prboom_libretro.so "$@"

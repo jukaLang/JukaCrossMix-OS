@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 config_file="$1"
 key="$2"

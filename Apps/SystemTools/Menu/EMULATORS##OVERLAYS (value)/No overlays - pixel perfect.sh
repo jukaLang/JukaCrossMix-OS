@@ -21,7 +21,8 @@ skip_count=0
 found_count=0
 
 # Recursively search for .cfg files in cfg_dir
-while IFS= read -r -d '' cfg_file; do
+find "$cfg_dir" -type f -name '*.cfg' ! -path "*VecX*" -print > /tmp/cfglist.$$
+while IFS= read -r cfg_file; do
 
 	# If aspect_ratio_index exists, it's a special configuration, we skip to the next file (except if the ratio is 22 which is the default ratio "core provided")
 	aspect_ratio_index=$(/mnt/SDCARD/System/usr/trimui/scripts/get_ra_cfg.sh "$cfg_file" "aspect_ratio_index")
@@ -32,7 +33,7 @@ while IFS= read -r -d '' cfg_file; do
 
 		# Extract the prefix of the file name (without the .cfg extension)
 		prefix=$(basename "$cfg_file" .cfg)
-		prefix=${prefix// /_}
+		prefix=$(printf '%s' "$prefix" | tr ' ' '_')
 
 		configPatchFile=$(mktemp -p /tmp/patches)
 
@@ -54,7 +55,8 @@ while IFS= read -r -d '' cfg_file; do
 	# Display a message for each created file
 	# echo "Patch file created for $prefix: $configPatchFile"
 
-done < <(find "$cfg_dir" -type f -name '*.cfg' ! -path "*VecX*" -print0)
+done < /tmp/cfglist.$$
+rm -f /tmp/cfglist.$$
 
 sync
 

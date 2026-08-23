@@ -1,6 +1,6 @@
 #!/bin/sh
-source /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
-source /mnt/SDCARD/System/etc/ex_config
+. /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
+. /mnt/SDCARD/System/etc/ex_config
 
 # Add LOG_FILE detection
 LOG_FILE="/tmp/log/messages"

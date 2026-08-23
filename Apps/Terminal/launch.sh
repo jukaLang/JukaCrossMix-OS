@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Fix slowdown caused by moded inputd
 touch /var/trimui_inputd/sticks_disabled

@@ -1,5 +1,5 @@
 #!/bin/sh
-source /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
+. /mnt/SDCARD/System/usr/trimui/scripts/common_launcher.sh
 
 # cwd is EMU_DIR
 cd PPSSPP_1.17.1

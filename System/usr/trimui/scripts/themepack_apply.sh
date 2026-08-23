@@ -17,7 +17,9 @@ fi
 if [ -n "$theme" ]; then
     if [ -d "/mnt/SDCARD/Themes/${theme}" ]; then
         /mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -m "Applying \"${theme}\" theme." -t 1
-        [ "$theme" = "CrossMix - OS" ] && theme="Default"
+        case "$theme" in
+        "CrossMix - OS" | "JukCrossMix-OS") theme="Default" ;;
+        esac
         "/mnt/SDCARD/Apps/SystemTools/Menu/ADVANCED SETTINGS##THEMES (value)/${theme}.sh"
     else
         echo "Theme directory Themes/${theme} does not exist."
@@ -29,11 +31,14 @@ fi
 if [ -n "$bootlogo" ]; then
     read -r current_device </etc/trimui_device.txt
 
-    if [ "$current_device" = "tsp" ]; then
+    case "$current_device" in
+    tsp | tsps)
         src_dir="/mnt/SDCARD/Apps/BootLogo/Images_1280x720/"
-    else
+        ;;
+    *)
         src_dir="/mnt/SDCARD/Apps/BootLogo/Images_1024x768/"
-    fi
+        ;;
+    esac
 
     if [ -f "$src_dir/$bootlogo" ]; then
         /mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -i "$src_dir/$bootlogo" -m "Flashing logo..." -fs 100 -c green -t 0.5

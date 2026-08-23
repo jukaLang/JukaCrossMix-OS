@@ -20,7 +20,7 @@ if [ "$extension" = "txt" ]; then
 fi
 
 if [ "$extension" = "launch" ]; then
-    source "$RomFullPath"
+    . "$RomFullPath"
 fi
 
 echo "***************************************************************************"

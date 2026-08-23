@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 progdir=$(dirname "$0")
 export LD_LIBRARY_PATH="$progdir/lib:$LD_LIBRARY_PATH"

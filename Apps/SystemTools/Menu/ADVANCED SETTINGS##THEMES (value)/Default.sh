@@ -1,7 +1,7 @@
 #!/bin/sh
 
 theme=$(basename "$0" .sh)
-[ "$theme" = "Default" ] && theme="CrossMix - OS"
+[ "$theme" = "Default" ] && theme="JukCrossMix-OS"
 
 if [ -d "/mnt/SDCARD/Themes/${theme}" ]; then
     /mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -m "Applying \"${theme}\" theme."

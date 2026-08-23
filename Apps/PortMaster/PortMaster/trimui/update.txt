@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if [ -d "/mnt/SDCARD/Data/ports" ]; then
     exit 0

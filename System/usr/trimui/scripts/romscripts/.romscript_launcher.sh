@@ -28,8 +28,8 @@ add_choice() {
     local display_name="${filename%.sh}"
 
     # Replace variables in display name
-    display_name="${display_name//EMU_DIR/$EMU_DIR_BASENAME}"
-    display_name="${display_name//PRESET_TYPE/$Preset_Type}"
+    display_name=$(printf '%s' "$display_name" | sed "s|EMU_DIR|$EMU_DIR_BASENAME|g")
+    display_name=$(printf '%s' "$display_name" | sed "s|PRESET_TYPE|$Preset_Type|g")
 
     # If no preset is selected, do not add the specific "Remove current PRESET_TYPE preset.sh" choice
     if [ "$Preset_Type" = "None" ]; then
@@ -61,8 +61,8 @@ if [ -d "$SCRIPT_DIR" ]; then
 
         # Replace variables in folder name
         display_header="$subdirname"
-        display_header="${display_header// LAUNCHER_NAME/: $Launcher_name}"
-        display_header="${display_header// PRESET_TYPE/: $Preset_Type}"
+        display_header=$(printf '%s' "$display_header" | sed "s| LAUNCHER_NAME|: $Launcher_name|g")
+        display_header=$(printf '%s' "$display_header" | sed "s| PRESET_TYPE|: $Preset_Type|g")
 
         header="------- $display_header -------"
         choices="$choices \"$header\""

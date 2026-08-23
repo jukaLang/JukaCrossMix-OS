@@ -9,7 +9,7 @@ img = Image.open("input_image.png")
 draw = ImageDraw.Draw(img)
 
 # Load the font
-font = ImageFont.truetype("/mnt/SDCARD/Themes/CrossMix - OS/wqy-microhei.ttf", 18)
+font = ImageFont.truetype("/mnt/SDCARD/Themes/JukCrossMix-OS/wqy-microhei.ttf", 18)
 # font = ImageFont.load_default()
 
 # Draw the text onto the image
