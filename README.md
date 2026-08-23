@@ -1,7 +1,4 @@
 <div align="center">
-
-<img src="_assets/readme/JukaMix-Logo.png" alt="JukaMix OS" width="420">
-
 ### One OS for every TrimUI handheld.
 
 Smart Pro · Smart Pro S · Brick · Brick Pro — auto-detected, auto-tuned.
