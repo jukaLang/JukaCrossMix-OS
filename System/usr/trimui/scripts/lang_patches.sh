@@ -56,19 +56,7 @@ try:
     with open(patch_path, 'r', encoding='utf-8') as f:
         patch_data = json.load(f)
 
-    # Remove keys >= 197 from data that are not in the patch
-    # This ensures that if we switch devices, we don't keep keys from the previous device
-    keys_to_remove = []
-    for key in list(data.keys()):
-        if key.isdigit() and int(key) >= 197:
-            if key not in patch_data:
-                keys_to_remove.append(key)
-    
-    for key in keys_to_remove:
-        del data[key]
-
-    # Apply patch
-    # The patch contains keys that should be updated in the target
+    # Apply patch: add or update keys, never remove
     for key, value in patch_data.items():
         data[key] = value
 
