@@ -47,8 +47,11 @@ jobs:
 
       - name: Clean image
         run: |
-          # host-side tooling and repo metadata never ship on the SD card
-          rm -rf _assets scripts tests schemas packages .github .git
+          # host-side tooling and repo metadata never ship on the SD card.
+          # NOTE: .git is deliberately KEPT — the publish step needs it to
+          # resolve the repository (gh) and to build the changelog (git log).
+          # It is excluded from the release archive instead (see Zip step).
+          rm -rf _assets scripts tests schemas packages .github
           find . -type f -name ".gitkeep" -delete
           rm -f README.md
           ls -la
@@ -63,8 +66,9 @@ jobs:
           BASE="JukaMix_${STAMP}.zip"
 
           # Fast store-level compression: the tree is mostly already-compressed
-          # content (cores, firmwares), so zip64 stays quick.
-          7zz a -tzip -mx=1 "$BASE" ./* > /dev/null
+          # content (cores, firmwares), so zip64 stays quick. -xr!.git keeps the
+          # repository metadata (needed for publishing) out of the shipped image.
+          7zz a -tzip -mx=1 -xr!.git "$BASE" ./* > /dev/null
           SIZE="$(stat -c%s "$BASE")"
 
           # GitHub hard-caps each release asset at 2 GiB and the image is
@@ -73,7 +77,7 @@ jobs:
           if [ "$SIZE" -gt 1900000000 ]; then
             echo "::warning::Archive is $(numfmt --to=iec "$SIZE") — splitting into <2 GB volumes"
             rm -f "$BASE"
-            7zz a -tzip -mx=1 -v1900m "$BASE" ./* > /dev/null
+            7zz a -tzip -mx=1 -v1900m -xr!.git "$BASE" ./* > /dev/null
             echo "Release volumes:"
             ls -la "${BASE}".*
           else
@@ -87,6 +91,9 @@ jobs:
       - name: Publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Tell gh which repository to use so it never needs a local .git
+          # directory to resolve it.
+          GH_REPO: ${{ github.repository }}
         run: |
           BASE="JukaMix_${STAMP}.zip"
           shopt -s nullglob
