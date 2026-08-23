@@ -112,7 +112,7 @@ check_filesystem() {
     echo -e "\n${BLUE}================== CHECKDISK ==================${NC}\n"
     # Check the filesystem
     last_fsck_date=$(cat /mnt/SDCARD/System/updates/last_fsck.txt 2>/dev/null)
-    if [ "$last_fsck_date" == "$current_date" ]; then
+    if [ "$last_fsck_date" = "$current_date" ]; then
         echo -e "The last fsck was performed today ($current_date).\nNo need to rerun."
     else
         echo -ne "\n" \

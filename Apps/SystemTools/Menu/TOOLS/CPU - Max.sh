@@ -7,6 +7,8 @@ output_file="/tmp/cpumax.sh"
 CPU_led_Loop() {
     cat <<'EOF'
 #!/bin/sh
+# Apply the device's true maximum frequency (stock kernels reject 2000 MHz)
+. /mnt/SDCARD/System/etc/cpu_profiles.sh
 
 while true; do
 
@@ -14,15 +16,14 @@ while true; do
     echo "Set CPU governor to performance."
     for CPU in /sys/devices/system/cpu/cpu[0-3]; do
         # Set minimum frequency
-        echo -n "2000000" > "$CPU"/cpufreq/scaling_min_freq
-        echo "Set minimum CPU frequency to 2000000 for $CPU."
+        echo -n "$CPU_FREQ_MAX" > "$CPU"/cpufreq/scaling_min_freq
+        echo "Set minimum CPU frequency to $CPU_FREQ_MAX for $CPU."
 
-        echo -n "2000000" > "$CPU"/cpufreq/scaling_max_freq
-        echo "Set maximum CPU frequency to 2000000 for $CPU."
+        echo -n "$CPU_FREQ_MAX" > "$CPU"/cpufreq/scaling_max_freq
+        echo "Set maximum CPU frequency to $CPU_FREQ_MAX for $CPU."
     done
     sleep 3
 done
-
 
 EOF
 }

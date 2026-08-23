@@ -11,8 +11,7 @@ if [ "$button" = "B" ]; then
 fi
 
 # Set CPU performance mode
-echo performance >/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-echo 1416000 >/sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+/mnt/SDCARD/System/usr/trimui/scripts/cpu_boost.sh
 
 /mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -m "Installing Retroarch Cheats in background..." -t 3
 . /mnt/SDCARD/System/usr/trimui/scripts/common_functions.sh

@@ -5,7 +5,7 @@ cmd=$1
 
 # channel : stable or beta
 channel=$(cat "$updatedir/ota_channel.txt" 2>/dev/null)
-if [ "$channel" == "" ]; then
+if [ "$channel" = "" ]; then
     channel="stable"
 fi
 
@@ -15,7 +15,7 @@ main() {
     check_connection
     clear
 
-    if [ "$cmd" == "check" ]; then
+    if [ "$cmd" = "check" ]; then
         IP=$(ip route get 1 | awk '{print $NF;exit}')
         if [ "$IP" != "" ]; then
             get_release_info

@@ -1,6 +1,16 @@
 #!/bin/sh
 export LD_LIBRARY_PATH="/mnt/SDCARD/System/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
 read -r current_device </etc/trimui_device.txt
+
+# Friendly device name for the boot splash
+case "$current_device" in
+tsp) DEVICE_NAME="Smart Pro" ;;
+tsps) DEVICE_NAME="Smart Pro S" ;;
+brick) DEVICE_NAME="Brick" ;;
+brickpro) DEVICE_NAME="Brick Pro" ;;
+*) DEVICE_NAME="" ;;
+esac
+
 Current_Theme=$(/usr/trimui/bin/systemval theme)
 Current_bg="$Current_Theme/skin/bg.png"
 if [ ! -f "$Current_bg" ]; then
@@ -9,7 +19,7 @@ fi
 
 ################ CrossMix-OS Version Splashscreen ################
 read -r version </mnt/SDCARD/System/usr/trimui/crossmix-version.txt
-/mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -i "$Current_bg" -m "JukaMix OS v$version" &
+/mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -i "$Current_bg" -m "JukaMix OS v$version${DEVICE_NAME:+ - $DEVICE_NAME}" &
 
 ################ CrossMix-OS internal storage Customization ################
 read -r FW_patched_version </usr/trimui/crossmix-version.txt
@@ -217,7 +227,7 @@ if [ "$version" != "$FW_patched_version" ]; then
             ;;
         esac
 
-        /mnt/SDCARD/Emus/_BootLogo/launch.sh "$src_dir/- CrossMix-OS.bmp"
+        /mnt/SDCARD/Emus/_BootLogo/launch.sh "$src_dir/- JukaMix.bmp"
     fi
 
     sync
@@ -240,14 +250,25 @@ if [ -f "/tmp/device_changed" ]; then
     # copy of the most up-to-date version of retroarch for this device
     files=$(ls /mnt/SDCARD/RetroArch/ra64.trimui_${current_device}_*.bin 2>/dev/null)
     latest_file=$(echo "$files" | sort -V | tail -n 1)
-    cp "$latest_file" "/mnt/SDCARD/RetroArch/ra64.trimui"
+    # Brick Pro has no dedicated RetroArch build yet: use the newest Brick one
+    if [ -z "$latest_file" ] && [ "$current_device" = "brickpro" ]; then
+        files=$(ls /mnt/SDCARD/RetroArch/ra64.trimui_brick_*.bin 2>/dev/null)
+        latest_file=$(echo "$files" | sort -V | tail -n 1)
+    fi
+    if [ -n "$latest_file" ]; then
+        cp "$latest_file" "/mnt/SDCARD/RetroArch/ra64.trimui"
+    fi
 
-    # OSD customization
+    # OSD customization (Brick / Brick Pro ship osdlayout_brick*.json and keep their stock OSD binaries)
     cp /mnt/SDCARD/System/usr/trimui/res/osd/osdlayout_${current_device}.json /usr/trimui/osd/osdlayout.json
-    # OSD binaries
-    chmod a+x /usr/trimui/osd/trimui_osdd
-    cp /mnt/SDCARD/System/usr/trimui/osd/cpuinfo_osdd_${current_device}   /mnt/SDCARD/System/usr/trimui/osd/cpuinfo_osdd
-    cp /mnt/SDCARD/System/usr/trimui/osd/nightmode_osdd_${current_device} /mnt/SDCARD/System/usr/trimui/osd/nightmode_osdd
+    # OSD binaries (only the Smart Pro / Smart Pro S have custom builds)
+    case "$current_device" in
+    tsp | tsps)
+        chmod a+x /usr/trimui/osd/trimui_osdd
+        cp /mnt/SDCARD/System/usr/trimui/osd/cpuinfo_osdd_${current_device}   /mnt/SDCARD/System/usr/trimui/osd/cpuinfo_osdd
+        cp /mnt/SDCARD/System/usr/trimui/osd/nightmode_osdd_${current_device} /mnt/SDCARD/System/usr/trimui/osd/nightmode_osdd
+        ;;
+    esac
 
     sync
 

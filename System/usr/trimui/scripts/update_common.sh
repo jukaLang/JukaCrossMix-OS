@@ -3,7 +3,7 @@ UPDATE_VERSION=1.0.0
 export PATH="/mnt/SDCARD/System/bin:/mnt/SDCARD/System/usr/trimui/scripts:$PATH"
 export LD_LIBRARY_PATH="/mnt/SDCARD/System/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
 
-if [ "$1" == "-v" ]; then
+if [ "$1" = "-v" ]; then
     echo -n $UPDATE_VERSION
     exit
 fi

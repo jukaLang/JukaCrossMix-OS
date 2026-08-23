@@ -13,7 +13,7 @@
 packname="JukCrossMix-OS"
 style="Default"
 theme="JukCrossMix-OS"
-bootlogo="- CrossMix-OS.bmp"
+bootlogo="- JukaMix.bmp"
 emuicons="Default"
 appicons="Default"
 background="Default"

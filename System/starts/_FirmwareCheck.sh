@@ -156,7 +156,7 @@ else
         CrossMix_version=$(cat /mnt/SDCARD/System/usr/trimui/crossmix-version.txt)
         Current_FW_Version="$(cat /etc/version)"
 
-        echo "Current firmware ($Current_FW_Version - $Current_FW_Revision) must be updated to $Required_FW_Version - $Required_FW_Revision to support CrossMix OS v$CrossMix_version."
+        echo "Current firmware ($Current_FW_Version - $Current_FW_Revision) must be updated to $Required_FW_Version - $Required_FW_Revision to support JukaMix OS v$CrossMix_version."
 
         # Install new busybox from PortMaster, credits : https://github.com/kloptops/TRIMUI_EX
 

@@ -11,7 +11,7 @@ sttbrt=`cat /mnt/UDISK/system.json|jq .brightness`
 disbrt=$(printf "%.0f" `echo "$sttbrt * 23"|bc`)
 
 # we make sure settings "0" is still visible
-if [ "$disbrt" == "0" ]; then
+if [ "$disbrt" = "0" ]; then
   disbrt=4
 fi
 

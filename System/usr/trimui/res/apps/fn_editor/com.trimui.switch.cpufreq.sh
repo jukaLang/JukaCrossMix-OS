@@ -1,6 +1,8 @@
 #!/bin/sh
 PATH="/mnt/SDCARD/System/usr/trimui/scripts:/mnt/SDCARD/System/bin:$PATH"
 
+. /mnt/SDCARD/System/etc/cpu_profiles.sh
+
 echo "============= toggle CPUFREQ ============"
 CPUFREQ_MODE=0
 
@@ -9,7 +11,7 @@ CPUFREQ_MIN=$(cat /sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq)
 
 echo "cpu scaling freq $CPUFREQ_MIN ~ $CPUFREQ_MAX"
 
-if [ "$CPUFREQ_MIN" -eq 2000000 ] && [ "$CPUFREQ_MAX" -eq 2000000 ]; then
+if [ "$CPUFREQ_MIN" -eq "$CPU_FREQ_MAX" ] && [ "$CPUFREQ_MAX" -eq "$CPU_FREQ_MAX" ]; then
     CPUFREQ_MODE=3
 
 elif [ "$CPUFREQ_MIN" -eq 1608000 ] && [ "$CPUFREQ_MAX" -eq 1800000 ]; then

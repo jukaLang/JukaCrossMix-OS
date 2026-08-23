@@ -1,8 +1,7 @@
 #!/bin/sh
 echo $0 $*
 
-echo performance >/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-echo 1416000 >/sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+/mnt/SDCARD/System/usr/trimui/scripts/cpu_boost.sh
 
 PATH="/mnt/SDCARD/System/bin:$PATH"
 export LD_LIBRARY_PATH="/mnt/SDCARD/System/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"

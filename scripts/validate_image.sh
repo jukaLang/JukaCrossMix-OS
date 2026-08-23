@@ -63,6 +63,55 @@ else
     note_fail "JukCrossMix-OS skin differs from the reference theme"
 fi
 
+echo "== 5. Release-size safety (GitHub caps assets at 2 GiB) =="
+TOTAL=$(find . -path ./.git -prune -o -type f -printf '%s\n' 2>/dev/null | awk '{s+=$1} END {printf "%.2f GB", s/1073741824}')
+echo "  Image content: $TOTAL"
+BIG=$(find . -path ./.git -prune -o -type f -size +1900M -printf '%p\n' 2>/dev/null)
+if [ -n "$BIG" ]; then
+    note_fail "Files >=1.9 GB would break the release (2 GiB/asset cap): $BIG"
+else
+    echo "  OK no single file >=1.9 GB"
+fi
+# informational: over 2 GB the workflow splits the archive into volumes
+echo "  Note: over 2 GB total, the release ships as multi-volume .001/.002 parts"
+
+echo "== 6. Per-device CPU profiles =="
+if [ -f "System/etc/cpu_profiles.sh" ]; then
+    if dash -n "System/etc/cpu_profiles.sh" 2>/dev/null; then
+        echo "  OK cpu_profiles.sh parses (POSIX sh)"
+    else
+        note_fail "cpu_profiles.sh does not parse under dash"
+    fi
+    for dev in tsp tsps brick brickpro; do
+        if grep -q "${dev})" "System/etc/cpu_profiles.sh"; then
+            echo "  OK profile for $dev"
+        else
+            note_fail "cpu_profiles.sh missing profile for $dev"
+        fi
+    done
+else
+    note_fail "Missing System/etc/cpu_profiles.sh"
+fi
+
+echo "== 7. JukaMix boot logo (flashed at first boot) =="
+for logo in "Apps/BootLogo/Images_1280x720/- JukaMix.bmp" "Apps/BootLogo/Images_1024x768/- JukaMix.bmp"; do
+    if [ -f "$logo" ]; then
+        SIZE=$(stat -c%s "$logo")
+        if [ "$SIZE" -lt 6291456 ]; then
+            echo "  OK $logo ($(numfmt --to=iec "$SIZE"))"
+        else
+            note_fail "$logo exceeds the 6 MB flash limit"
+        fi
+    else
+        note_fail "Missing boot logo: $logo"
+    fi
+done
+if grep -q 'bootlogo="- JukaMix.bmp"' "Apps/SystemTools/Menu/THEME##THEME PACK (value)/JukCrossMix-OS.sh"; then
+    echo "  OK default theme pack flashes the JukaMix logo"
+else
+    note_fail "JukCrossMix-OS theme pack does not point at the JukaMix boot logo"
+fi
+
 echo
 if [ "$FAIL" = 0 ]; then
     echo "Image validation OK"

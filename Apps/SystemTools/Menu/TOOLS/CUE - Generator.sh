@@ -10,7 +10,8 @@ fi
 
 cd "$rootdir"
 
-find $targets -maxdepth 3 -name *.bin -type f | (
+# the count is computed in a subshell (piped from find); capture the summary
+summary=$(find $targets -maxdepth 3 -name *.bin -type f | (
 
     while read target; do
         dir_path=$(dirname "$target")
@@ -30,13 +31,14 @@ find $targets -maxdepth 3 -name *.bin -type f | (
   TRACK 01 MODE1/2352
     INDEX 01 00:00:00" >"$cue_path"
 
-        let count++
+        count=$((count + 1))
     done
 
     echo "$count cue $([ $count -eq 1 ] && (echo "file") || (echo "files")) created"
-)
+))
+echo "$summary"
 
 find $targets -maxdepth 1 -type f -name "*_cache7.db" -exec rm -f {} \;
 
 
-/mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -m "$count cue file(s) created." -t 3
+/mnt/SDCARD/System/usr/trimui/scripts/infoscreen.sh -m "$summary" -t 3

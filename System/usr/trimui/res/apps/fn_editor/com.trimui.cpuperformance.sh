@@ -1,6 +1,8 @@
 #!/bin/sh
 echo "============= scene CPU Performance ============"
 
+. /mnt/SDCARD/System/etc/cpu_profiles.sh
+
 normal_restored=false
 
 while true; do
@@ -9,8 +11,8 @@ while true; do
         # echo "cpu performance"
         if [ -f "/tmp/cmd_to_run.sh" ]; then
             echo performance >/sys/devices/system/cpu/cpufreq/policy0/scaling_governor
-            echo -n "2000000" >/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq
-            echo -n "2000000" >/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq
+            echo -n "$CPU_FREQ_MAX" >/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq
+            echo -n "$CPU_FREQ_MAX" >/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq
             normal_restored=false
         fi
         ;;
@@ -19,7 +21,7 @@ while true; do
         if [ "$normal_restored" = false ]; then
             echo ondemand >/sys/devices/system/cpu/cpufreq/policy0/scaling_governor
             echo -n "816000" >/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq
-            echo -n "1608000" >/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq
+            echo -n "$CPU_FREQ_MAX" >/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq
             normal_restored=true
         fi
         ;;

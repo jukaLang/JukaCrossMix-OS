@@ -71,6 +71,27 @@ if [ -z "$governor" ]; then
 	exit 0
 fi
 
+# Device-aware frequency clamping: never request a step the device cannot
+# reach (e.g. 2000 MHz on stock A133P kernels), so "max" tools actually work
+# on every device. See System/etc/cpu_profiles.sh.
+. /mnt/SDCARD/System/etc/cpu_profiles.sh 2>/dev/null || CPU_FREQ_MAX=1800000
+
+case "$CPU_FREQ_MAX" in
+1800000) CPU_MAX_ID=7 ;;
+1608000) CPU_MAX_ID=6 ;;
+1416000) CPU_MAX_ID=5 ;;
+1200000) CPU_MAX_ID=4 ;;
+1008000) CPU_MAX_ID=3 ;;
+816000)  CPU_MAX_ID=2 ;;
+*)       CPU_MAX_ID=7 ;;
+esac
+
+if [ -n "$min_id" ] && [ -n "$max_id" ]; then
+	[ "$min_id" -gt "$CPU_MAX_ID" ] && min_id=$CPU_MAX_ID
+	[ "$max_id" -gt "$CPU_MAX_ID" ] && max_id=$CPU_MAX_ID
+	[ "$min_id" -gt "$max_id" ] && min_id=$max_id
+fi
+
 # Validate frequency settings
 if [ "$governor" != "interactive" ] && [ "$governor" != "ondemand" ] && [ "$governor" != "performance" ] && [ "$governor" != "powersave" ] && [ "$governor" != "conservative" ]; then
 	echo "cpufreq.sh: Invalid governor."

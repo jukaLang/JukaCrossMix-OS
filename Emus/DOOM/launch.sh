@@ -28,7 +28,7 @@ if [ $RomDir = GZDoom ]; then
 
 	version=$(jq -r --arg md5 "$md5_hash" 'to_entries | map(.value[] | select(.MD5Hash == $md5) | .Version) | .[0]' "$GZDOOM_DIR/iwad_checksums.json")
 
-	if [ "$version" == "null" ] || [ -z "$version" ]; then
+	if [ "$version" = "null" ] || [ -z "$version" ]; then
 		echo "Error: No matching version found for the selected IWAD file."
 		infoscreen.sh -i "$GZDOOM_DIR/bg_doom.png" -m "$(basename "$IwadFile") is an unknown iwad file. (menu+power to exit if frozen)" -t 2
 		version="$IwadName (Unknown)"

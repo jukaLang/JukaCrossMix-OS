@@ -4,9 +4,20 @@ PATH="/mnt/SDCARD/System/usr/trimui/scripts:/mnt/SDCARD/System/bin:$PATH"
 varname="cpu_minfreq"
 osd_varname="slider_cpu_minfreq"
 
-frequencies="408000 600000 816000 1008000 1200000 1416000 1608000 1800000 2000000"
+# All cpufreq steps, clamped to the device's true maximum (stock kernels
+# reject 2000 MHz, which would silently break the top of the slider)
+. /mnt/SDCARD/System/etc/cpu_profiles.sh
+all_frequencies="408000 600000 816000 1008000 1200000 1416000 1608000 1800000 2000000"
+frequencies=""
+for f in $all_frequencies; do
+    [ "$f" -gt "$CPU_FREQ_MAX" ] && break
+    frequencies="$frequencies $f"
+done
+frequencies="${frequencies# }"
 Min_Value=0
-Max_Value=8
+Max_Value=0
+for f in $frequencies; do Max_Value=$((Max_Value + 1)); done
+Max_Value=$((Max_Value - 1))
 interval=1
 
 current=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq)

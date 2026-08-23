@@ -107,7 +107,7 @@ rootfs_space=$(df / | awk 'NR==2 {print $4}')
 
 if [ "$rootfs_space" -lt "$minspace" ]; then
     # Cleaning root
-    for f in /*; do if [ -f "$f" ] && [ ! "$f" == "/device_info_TrimUI_TrimUI Smart Pro.txt" ] && [ ! "$f" == "/rdinit" ] && [ ! "$f" == "/worldmap.dat" ]; then rm $f; fi; done
+    for f in /*; do if [ -f "$f" ] && [ ! "$f" = "/device_info_TrimUI_TrimUI Smart Pro.txt" ] && [ ! "$f" = "/rdinit" ] && [ ! "$f" = "/worldmap.dat" ]; then rm $f; fi; done
     rootfs_space=$(df / | awk 'NR==2 {print $4}')
     if [ "$rootfs_space" -lt "$minspace" ]; then
         echo -ne "${RED}Error: Available space on internal storage is less than 20 MB${NONE}\n"

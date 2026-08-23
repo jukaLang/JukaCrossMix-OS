@@ -11,10 +11,17 @@ on:
       - 'v*'
   workflow_dispatch:
 
+# Never run two builds for the same ref at once: parallel runs would race
+# over the `JukaMix-latest` release (delete/create) and produce torn assets.
+concurrency:
+  group: jukamix-release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-release:
     name: Build release image
     runs-on: ubuntu-latest
+    timeout-minutes: 180
 
     steps:
       - uses: actions/checkout@v4
@@ -22,7 +29,7 @@ jobs:
       - name: Install packaging tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq p7zip-full zip
+          sudo apt-get install -y -qq p7zip-full
           # scripts call "7zz"; p7zip provides "7z"
           sudo ln -sf /usr/bin/7z /usr/local/bin/7zz
 
@@ -48,29 +55,88 @@ jobs:
           # bundle default RetroArch configuration for faster first boot
           cd RetroArch && 7zz a default_config.7z retroarch.cfg .retroarch/config/* && cd ..
 
-      - name: Zip release
+      - name: Zip release (split into volumes if over 2 GB)
         run: |
-          shopt -s dotglob
+          shopt -s dotglob nullglob
           STAMP="$(date +%m%d%Y%H)"
           echo "STAMP=${STAMP}" >> "$GITHUB_ENV"
-          zip -r "JukaMix_${STAMP}.zip" ./*
+          BASE="JukaMix_${STAMP}.zip"
+
+          # Fast store-level compression: the tree is mostly already-compressed
+          # content (cores, firmwares), so zip64 stays quick.
+          7zz a -tzip -mx=1 "$BASE" ./* > /dev/null
+          SIZE="$(stat -c%s "$BASE")"
+
+          # GitHub hard-caps each release asset at 2 GiB and the image is
+          # ~4.4 GB, so split the archive into <2 GB volumes. 7-Zip/WinRAR
+          # open .001 volumes directly; plain `7z x` reassembles them too.
+          if [ "$SIZE" -gt 1900000000 ]; then
+            echo "::warning::Archive is $(numfmt --to=iec "$SIZE") — splitting into <2 GB volumes"
+            rm -f "$BASE"
+            7zz a -tzip -mx=1 -v1900m "$BASE" ./* > /dev/null
+            echo "Release volumes:"
+            ls -la "${BASE}".*
+          else
+            echo "Archive is $(numfmt --to=iec "$SIZE") — ships as a single file"
+          fi
+
+          sha256sum "JukaMix_${STAMP}.zip"* > SHA256SUMS.txt
+          echo "== SHA256SUMS.txt =="
+          cat SHA256SUMS.txt
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ASSET="JukaMix_${STAMP}.zip"
+          BASE="JukaMix_${STAMP}.zip"
+          shopt -s nullglob
+          ASSETS=( "$BASE"* )          # single file, or .001/.002/... volumes
+          ASSETS+=( SHA256SUMS.txt )
+          echo "Uploading ${#ASSETS[@]} asset(s): ${ASSETS[*]}"
+
+          # Build release notes with install + multipart instructions, and a
+          # changelog for versioned tag releases.
+          {
+            echo "## JukaMix ${STAMP}"
+            echo
+            echo "Auto-built image for TrimUI **Smart Pro / Smart Pro S / Brick** — per-device CPU, OSD and input tuning is applied automatically at first boot."
+            echo
+            echo "**Install:** download **all** files from this release, then extract to the root of a FAT32/exFAT SD card and insert it into the device."
+            echo
+            if [ -f "${BASE}.001" ]; then
+              echo "This release is larger than GitHub's 2 GB per-file limit, so the archive is split into parts (\`.001\`, \`.002\`, …). **Every part is required.**"
+              echo
+              echo "- **Windows:** right-click \`${BASE}.001\` → 7-Zip → *Extract here* (or open it in WinRAR)"
+              echo "- **Linux/macOS:** \`7z x ${BASE}.001\`"
+              echo
+            fi
+            echo "**Verify integrity:** \`sha256sum -c SHA256SUMS.txt\`"
+            echo
+            if [ "${{ github.ref_type }}" = "tag" ]; then
+              PREV="$(git tag --sort=-version:refname | sed -n '2p')"
+              echo "**Changelog since ${PREV:-the beginning}:**"
+              echo '```'
+              if [ -n "$PREV" ]; then
+                git log --oneline --no-merges "$PREV"..HEAD
+              else
+                git log --oneline --no-merges | head -50
+              fi
+              echo '```'
+            fi
+          } > release_body.md
+          cat release_body.md
+
           if [ "${{ github.ref_type }}" = "tag" ]; then
             # versioned release for tag pushes (vX.Y.Z)
-            gh release create "${{ github.ref_name }}" "$ASSET" \
+            gh release create "${{ github.ref_name }}" "${ASSETS[@]}" \
               --title "JukaMix v${STAMP}" \
-              --notes "Auto-built JukaMix image — $(date -u +'%Y-%m-%d %H:%M UTC')"
+              --notes-file release_body.md
           else
             # continuous builds: refresh releases/latest so on-device
             # update checkers always see the newest image
             gh release delete JukaMix-latest --yes 2>/dev/null || true
-            gh release create JukaMix-latest "$ASSET" \
+            gh release create JukaMix-latest "${ASSETS[@]}" \
               --title "JukaMix ${STAMP}" \
               --latest \
-              --notes "Auto-built JukaMix image — $(date -u +'%Y-%m-%d %H:%M UTC')"
+              --notes-file release_body.md
           fi
