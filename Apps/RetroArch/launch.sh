@@ -44,7 +44,17 @@ if [ $? -eq 10 ]; then
         exit 1
     fi
 
-    SELECTED_FILE=$(eval /mnt/SDCARD/System/bin/selector -fs 120 -c $FILE_LIST | grep "You selected")
+    # Build selector arguments safely - strip the single quotes added by FILE_LIST construction
+    # FILE_LIST is built as: 'file1' 'file2' '...'
+    # We extract just the filenames and pass them as --file="filename" args
+    SELECTOR_ARGS=""
+    for f in $FILE_LIST; do
+        # Strip surrounding single quotes that FILE_LIST adds
+        clean_f="${f#'}"
+        clean_f="${clean_f%'}"
+        SELECTOR_ARGS="$SELECTOR_ARGS --file="$clean_f""
+    done
+    SELECTED_FILE=$(/mnt/SDCARD/System/bin/selector -fs 120 $SELECTOR_ARGS | grep "You selected")
     SELECTED_FILE=$(printf '%s\n' "$SELECTED_FILE" | sed 's/^.*: //')
 
 fi

@@ -351,6 +351,14 @@ IFS='
 set -f
 # =================
 
+# Validate CurrentSystem to prevent command injection
+case "$CurrentSystem" in
+    *[!a-zA-Z0-9_.-]*)
+        echo "Error: Invalid system name: $CurrentSystem"
+        exit 1
+        ;;
+esac
+
 for file in $(eval "find /mnt/SDCARD/Roms/$CurrentSystem -maxdepth 2 -type f \
 	! -name '.*' ! -name '*.xml' ! -name '*.miyoocmd' ! -name '*.cfg' ! -name '*.db' \
     ! -name '*.png' ! -name '*.state' ! -name '*.srm' \
