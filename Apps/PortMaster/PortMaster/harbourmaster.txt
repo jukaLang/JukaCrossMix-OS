@@ -1,0 +1,4 @@
+# Harbourmaster - PortMaster autoinstallation helper
+harbourmaster() {
+    echo "harbourmaster: autoinstall helper"
+}

@@ -27,10 +27,10 @@ updated emulators, and additional apps. It's completely free and open source.
 | | JukaMix OS |
 |---|---|
 | **Every TrimUI handheld** | Smart Pro, Smart Pro S and Brick from one image — performance profiles, emulator tuning and PortMaster setup adapt automatically to the running device |
-| **Transactional updates with rollback** | Updates are journaled with automatic rollback on failure — designed to minimize update risks, though power loss or SD corruption can still cause issues |
+| **Backed-up updates** | The installer backs up the files it replaces and checks free space before it runs — your ROMs, BIOS files, saves and themes live outside the image, so an update never overwrites them |
 | **Protected user data** | ROMs, BIOS, saves, states, screenshots and themes are on protected paths — the updater refuses to modify them |
 | **No computer needed** | Wi-Fi → Control Center → System Update. A background checker toasts you when a release lands |
-| **Integrity-checked updates** | Every file in an update is verified against the release manifest before it's applied |
+| **Verifiable downloads** | Every release publishes `SHA256SUMS.txt` next to the image, so an update can be checksum-verified before it is installed |
 | **Self-healing PortMaster** | Missing, broken, or copied without exec bits? It repairs itself on launch |
 | **Built for creators** | Themes, icon packs, backgrounds, "Best" templates and automatic overlays |
 | **Python & Go support** | Run Python scripts and compile Go programs directly on device |
@@ -334,11 +334,11 @@ Updating is one tap, no computer required:
 2. Open **Apps → JukaMix Control Center → System Update** (or the standalone **System Update** app).
 3. Confirm the download.
 
-JukaMix resolves the latest GitHub release and — when the release ships a `manifest.txt` —
-applies the change transactionally, verifying every file against the manifest as it's applied.
-Every replaced file is backed up and journaled, pending config migrations (`migrations/*-to-*.sh`)
-run once in order, and any failure rolls the update back automatically. Releases that ship only a
-full image fall back to the classic full-image installer, which also migrates saves and settings.
+JukaMix resolves the latest GitHub release, downloads the image and applies it in place. The
+installer backs up the files it replaces (system, emulators, apps, RetroArch), checks that the card
+has enough free space first, and restores saves, BIOS files, PortMaster data and settings afterwards.
+ROMs, BIOS files, saves, states, screenshots and themes live outside the image, so an update never
+overwrites them.
 
 <details>
 <summary><b>Offline update (no Wi-Fi)</b></summary>
@@ -357,9 +357,9 @@ full image fall back to the classic full-image installer, which also migrates sa
 | Device | Code | SoC | GPU | Display | Notes |
 |---|---|---|---|---|---|
 | **TrimUI Smart Pro** | `tsp` | Allwinner A133 Plus | Mali-G31 | 1280×720 (16:9) | Flagship target, dual analog |
-| **TrimUI Smart Pro S** | `tg5050` | Allwinner A523 | Mali-G57 | 1280×720 (16:9) | Fastest of the three, dual analog |
+| **TrimUI Smart Pro S** | `tsps` | Allwinner A523 | Mali-G57 | 1280×720 (16:9) | Fastest of the three, dual analog |
 | **TrimUI Brick** | `brick` | Allwinner A133 Plus | Mali-G31 | 1024×768 (4:3, touch) | No analog sticks, no rumble |
-| **TrimUI Brick Pro** | `brick_pro` | Allwinner A133 Plus | Mali-G31 | 1280×720 (16:9) | Same as Smart Pro, dual analog |
+| **TrimUI Brick Pro** | `brickpro` | Allwinner A133 Plus | Mali-G31 | 1280×720 (16:9) | Same as Smart Pro, dual analog |
 
 Every emulator launcher tunes the CPU to its device's own ceiling via
 `cpufreq.sh ondemand 2 "${JUKAMIX_CPUFREQ_MAX:-6}"`: **Smart Pro S** runs at up to
@@ -435,6 +435,61 @@ directly; update the runtime from the Debian `libc6` package (see `System/lib/gl
 
 ---
 
+## Analog sticks
+
+TrimUI pads are not plain evdev controllers. The stick MCUs talk to `trimui_inputd` over a UART,
+the daemon applies the calibration in `/mnt/UDISK/joypad.config` (left) and `joypad_right.config`
+(right) and publishes the result as `TRIMUI Player1..4` — the devices every emulator, MainUI and the
+firmware's calibration screen read. That is why a stick can look perfect in the calibration screen
+and still move the wrong way in a game.
+
+Everything below is read from the running system, nothing is hardcoded per model:
+
+| Device | Sticks | Calibration the daemon reads | Input daemon on the card |
+|---|---|---|---|
+| Smart Pro (`tsp`) | left + right | `joypad.config`, `joypad_right.config` | `System/resources/tsp_inputd` — universal TG5040/TG5050 build, pad over `/dev/ttyS*` |
+| Smart Pro S (`tsps`) | left + right | same | `System/resources/tsps_inputd` — the same universal build, pad over `/dev/ttyAS*` |
+| Brick (`brick`) | none | – | the firmware's own `/usr/trimui/bin/trimui_inputd` (the OS builds have no stick support) |
+| Brick Pro (`brickpro`) | left + right | same | `System/resources/brickpro_inputd` — pad over I2C, no configurable polling rate |
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Horizontal input flipped in games, fine in the calibration screen | the pad frame reports left/right the other way round (depends on the unit's pad revision), so the analog axis (`ABS_X`) is mirrored while the calibration screen — which only proves the range — still looks right | **System Tools → CONTROLS → Analog Sticks → Direction test**, then **Enable mirror fix** (a reversible swap of RetroArch's `input_player1_*_x_*_axis` bindings) |
+| One half of a stick does nothing | calibration whose `min`/`max` no longer bracket `zero` — e.g. a `joypad.config` restored from another device or an older firmware | Same menu → **Clear calibration (recalibrate)**, then Settings → System → Calibrate Joystick |
+| Pad buttons/d-pad wrong after moving the SD card between devices | the installed daemon is the old TG5040-only build (or the wrong build for this SoC) | automatic at boot; manual: **Analog Sticks → Reinstall input daemon** or `inputd_switcher.sh verify` |
+| Mirror fix “on” in the menu but games are mirrored again | an OS update, a firmware-settings restore or a RetroArch config reset rewrote `retroarch.cfg` | **Re-apply mirror fix** in the same menu (the boot check usually does it first) |
+
+Why the mirror fix writes a binding instead of editing one: the shipped `retroarch.cfg` leaves every
+stick axis at `"nul"` — RetroArch maps the pad on its own — so “invert the value in the file” would
+write `"nul"` back and change nothing. The fix therefore writes an explicit binding, and because
+RetroArch numbers analog axes by position rather than by evdev code (with its `sdl2` joypad driver:
+`ABS_X`, `ABS_Y`, then the remaining axes in code order), the direction test records which code the
+stick really moves and binds that index. Pads that number their right stick differently therefore
+still get the right axis, and the report prints the numbering it found.
+
+The commands behind that menu entry (log: `Apps/SystemTools/Logs/Analog Sticks.log`):
+
+| Command | What it does |
+|---|---|
+| `stick_diag.sh report` | device/SoC, which daemon copy is running and what it talks to, calibration verdicts, published input devices, the RetroArch axis numbering, workaround state and a one-line verdict |
+| `stick_diag.sh status` | one line summary for menus/logs; exits `2` when a calibration is broken or the workaround fell out of `retroarch.cfg` |
+| `stick_diag.sh test [secs]` | guided direction test: push each stick as asked, it compares the analog axis **and** the d-pad bits with the expected direction, names the layer that mirrors and binds the stick it measured |
+| `stick_diag.sh flip on [l\|r\|both]` / `flip off` | apply/undo the RetroArch mirror fix (default: left stick; the menu asks which one). Originals are remembered in `System/etc/analog_x_flip.cfg` (and in the log), asking again for a stick that is already flipped re-applies the recorded binding instead of inverting twice |
+| `stick_diag.sh flip reapply` | write the recorded binding back into `retroarch.cfg` after an update or a restore replaced it; bindings changed by hand are left alone unless this is called explicitly |
+| `stick_diag.sh verify` | reinstall the input daemon when it does not match this device, then report |
+| `stick_diag.sh reset` | archives `joypad.config`/`joypad_right.config` so they can be recalibrated |
+| `stick_diag.sh ensure` | boot-time repair: quarantines only calibration files the daemon cannot use, keeps the input daemon in sync with the device and heals a dropped mirror fix |
+
+The daemon is device specific: `System/resources/{tsp,tsps}_inputd` is one universal build that picks
+TG5040 (Smart Pro) or TG5050 (Smart Pro S) from `/proc/cpuinfo`, while the older build shipped in
+`trimui/app/` knows only TG5040; the Brick Pro build polls its pad over I2C instead of a UART.
+`System/starts/°customization.sh` re-checks the installed copy at every boot (and detects the device
+from `/proc/cpuinfo` when `/etc/trimui_device.txt` is not there yet), so a card moved between devices
+can no longer run the wrong pad mapping. The mirror fix covers RetroArch; standalone emulators
+(PPSSPP, flycast, Yaba Sanshiro, …) keep their own mapping tables and need the same swap in their own
+config.
+---
+
 ## Customise it
 
 JukaMix is built for creators. Everything below is drop-in — no rebuild required.
@@ -464,6 +519,8 @@ Best pack folders must not contain spaces — the on-device name comes from the 
 | **No sound** | Check volume buttons, Settings → Sound |
 | **Wi-Fi won't connect** | Toggle Wi-Fi, reboot, check 2.4GHz network |
 | **Slow performance** | Use Performance Profiles, check game compatibility |
+| **Analog stick left/right flipped in games** | System Tools → CONTROLS → Analog Sticks → **Direction test**, then **Enable mirror fix** |
+| **Half of a stick dead / stick drifts** | Same menu → **Clear calibration**, then recalibrate (Settings → System → Calibrate Joystick) |
 | **Device won't boot** | Remove SD card → reformat FAT32 → re-extract archive |
 
 > **📖 Full troubleshooting guide:** See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
@@ -479,11 +536,11 @@ A few boundaries are worth knowing before you poke around:
 |---|---|
 | `System/bin/`, `System/lib/` | Prebuilt runtime payload shipped in the image: third-party binaries (`bash`, `curl`, `7zz`, `ffmpeg`, …) and shared libraries, installed at `/mnt/SDCARD/System/bin` and `/mnt/SDCARD/System/lib`. `System/bin` is on `PATH` on-device. |
 | `bin/`, `lib/`, `migrations/`, `config/` | JukaMix's own tooling (`jm-update`, `jm-opkg`, `jm-portmaster`, …). `install.sh` copies these into `System/usr/jukamix/{bin,lib,migrations}` on the device. `/mnt/SDCARD/bin` is added to `PATH` (after `System/bin`, so nothing is shadowed) — `jm-opkg`, `jm-doctor`, etc. are invocable directly. |
-| `scripts/`, `tests/`, `schemas/`, `packages/` | Host-side build and validation tooling, **excluded from the release image and the OTA manifest**. Never needed on the SD card. |
+| `scripts/`, `tests/`, `_assets/` | Host-side build and validation tooling — `fetch_cores.sh`, `validate_image.sh`, the off-device test suites and the fetched firmware blobs. **Excluded from the release image**; never needed on the SD card. |
 | `tools/` | Build tooling that **also ships** in the image — JukaHub, System Update and `jukamix-validate` read `/mnt/SDCARD/tools/` on-device. |
 | `Roms/`, `BIOS/`, `Saves/`, `States/`, `Pictures/screenshots/`, `Themes/` | Protected user-data paths — an update never modifies them. The repo tracks only scaffolding (`.gitkeep`) and OS-provided content such as emulator bezels or machine definitions; user files never belong in git. |
-| `MANIFEST.json` | Release build artifact, generated into `dist/` by `scripts/build_release.sh`. Never committed, never part of the image. |
-| `trimui/firmwares/` | TrimUI firmware blobs are fetched on demand (see `scripts/fetch_firmware.sh`), not tracked in git. |
+| `RetroArch/default_config.7z` | Built by the release workflow from the image's `retroarch.cfg` and `.retroarch/config/`; the **Reset RetroArch configuration** tool extracts it on device. Never committed. |
+| `trimui/firmwares/` | TrimUI firmware blobs (tracked in git), used by the firmware update/backup flow. |
 | `RetroArch/.retroarch/cores/cores.7z` | Compressed RetroArch cores archive (~335MB, 165 cores). Too large for git; hosted at [jukaLang/Packages](https://github.com/jukaLang/Packages/releases/tag/cores) and downloaded at build time via `scripts/fetch_cores.sh`. Never committed to git. |
 
 ---
@@ -494,32 +551,34 @@ Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) 
 and [SUPPORT.md](SUPPORT.md) if you need help rather than want to file a bug.
 Join the conversation on [Discord](https://discord.gg/R9qgJjh5jG).
 
+Shell tooling has off-device tests that need no hardware — they build a simulated device tree
+through the `JUKAMIX_*` overrides and drive the guided stick test from a stub `evtest`:
+
+```sh
+sh tests/stick_diag_test.sh        # stick diagnostics, mirror fix, self-heal, per-device paths
+sh tests/inputd_switcher_test.sh   # daemon install/verify per device, polling-rate modes
+```
+
 <details>
 <summary><b>Release pipeline (maintainers)</b></summary>
 
-```bash
-scripts/build_release.sh            # defaults to today's date+hour stamp
-scripts/build_release.sh 0820202614  # or pass an explicit stamp
-```
+Releases are built by [`.github/workflows/JukaMix-OS Release.yml`](.github/workflows/JukaMix-OS%20Release.yml):
+every push to `main` (or a manual workflow run) publishes a new one. The workflow
 
-Stamps the build, fetches the firmware blobs, restores exec bits, and publishes into `dist/`:
+1. fetches the RetroArch cores archive (`scripts/fetch_cores.sh`),
+2. validates the image (`scripts/validate_image.sh` — JSON configs, `dash -n` on every image
+   script, bash-ism and theme checks),
+3. removes host-side tooling before archiving (`_assets`, `scripts`, `tests`, `schemas`,
+   `packages`, `.github`, `README.md`, leftover `.gitkeep`s) and bundles
+   `RetroArch/default_config.7z` for a faster first boot,
+4. zips the tree as `JukaMix_<MMDDYYYYHH>.zip` and, because GitHub caps a release asset at
+   2 GiB and the image is ~4.4 GB, splits it into 1900 MB volumes (`.001`, `.002`, …);
+   7-Zip/WinRAR open `.001` directly, plain `7z x` reassembles them,
+5. publishes the archive part(s) together with `SHA256SUMS.txt`.
 
-| Asset | Purpose |
-|---|---|
-| `JukaMix_0820202614.zip` | The full SD-card image (stamp = `MMDDYYYYHH`) |
-| `manifest.txt` | Incremental OTA manifest. **This is the transactional updater's source of truth**: when a release ships it, updates apply incrementally; without it, updates fall back to the full-image installer. `manifest.json` is accepted as a fallback by the updater, but `manifest.txt` always wins. |
-
-Before archiving it runs `scripts/validate_devices.sh` to confirm the combined image ships the
-device-specific files, profiles, and detection data for every supported device — Smart Pro
-(`tsp`), Smart Pro S (`tg5050`) and Brick (`brick`) — and that each one resolves to the right
-hardware profile and capabilities.
-
-Publishing is automatic: every push to `main` (or a manual run of the [release workflow](.github/workflows/JukaMix-OS%20Release.yml))
-builds the image and **publishes** the release with the archive and manifest. The stamp is
-generated at build time from the date+hour (`MMDDYYYYHH`, e.g. `JukaMix_0820202614`), so every
-build is a new version. Rebuilding within the same hour overwrites that hour's release, so
-`releases/latest` always points at the newest build; on-device update checkers simply report no
-update until the first release exists.
+The stamp comes from the date and hour, so every build is a new version. Rebuilding within the
+same hour overwrites that hour's release, and `releases/latest` always points at the newest
+build; the on-device update check simply reports no update until the first release exists.
 
 </details>
 

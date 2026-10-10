@@ -25,7 +25,11 @@ PM_DIR="/mnt/SDCARD/Apps/PortMaster/PortMaster"
 
 # Input variables
 ROM_REAL_PATH=$(realpath "$1")
-EMU_DIR="$(echo "$0" | sed -E 's|(.*Emus/[^/]+)/.*|\1|')"
+_REAL0="$(readlink -f "$0" 2>/dev/null || echo "$0")"
+EMU_DIR="$(echo "$_REAL0" | sed -E 's|(.*Emus/[^/]+)/.*|\1|')"
+if [ -z "$EMU_DIR" ]; then
+    EMU_DIR="$(echo "$0" | sed -E 's|(.*Emus/[^/]+)/.*|\1|')"
+fi
 if [ "${1#"/tmp/folderspoof/"}" != "$1" ]; then
     ROM_DIR=$(dirname "$1")
 else

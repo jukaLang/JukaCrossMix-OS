@@ -170,6 +170,24 @@ case "$selected_action" in
         ;;
     esac
 
+    # A calibration file restored from another device (or from an older firmware)
+    # can be unusable for the running daemon: it then loses one half of an axis,
+    # which looks like a dead or reversed stick.  Check it right after the
+    # restore so the user knows before starting a game.
+    case "$restore_type" in
+    all | joystick)
+        STICK="/mnt/SDCARD/System/usr/trimui/scripts/stick_diag.sh"
+        if [ -x "$STICK" ]; then
+            "$STICK" -q ensure
+            stick_state=$("$STICK" -q status | tr -d '\r')
+            case "$stick_state" in
+            OK*) ;;
+            *) restore_message="$restore_message Analog sticks: $stick_state - recalibrate in Settings > System > Calibrate Joystick." ;;
+            esac
+        fi
+        ;;
+    esac
+
     # Show info screen only in interactive mode
     if [ $# -eq 0 ]; then
         infoscreen.sh -m "$restore_message" -t 2

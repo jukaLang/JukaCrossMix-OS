@@ -171,7 +171,7 @@ apply_update() {
     clear
     if [ "$Mychoice" = "Yes" ]; then
 
-        UpdateScript="https://raw.githubusercontent.com/cizia64/CrossMix-OS/refs/tags/v$Release_Version/System/usr/trimui/scripts/crossmix_update.sh"
+        UpdateScript="https://raw.githubusercontent.com/jukaLang/JukaCrossMix-OS/refs/tags/v$Release_Version/System/usr/trimui/scripts/crossmix_update.sh"
         DownloadPath="/mnt/SDCARD/System/usr/trimui/scripts/crossmix_update.sh"
 
         download_file $UpdateScript -f "$DownloadPath" -t "Upgrading Update Script"

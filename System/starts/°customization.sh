@@ -85,10 +85,19 @@ if [ "$version" != "$FW_patched_version" ]; then
     cp "/mnt/SDCARD/System/usr/trimui/bin/kill_apps.sh" "/usr/trimui/bin/kill_apps.sh"
     chmod a+x "/usr/trimui/bin/kill_apps.sh"
 
-    # custom sshd initd script & disabled by default
-    cp "/mnt/SDCARD/trimui/etc/init.d/sshd" /etc/init.d/sshd
-    chmod a+x /etc/init.d/sshd
-    /etc/init.d/sshd disable
+    # custom sshd initd script & disabled by default.
+    # The card copy lives under System/usr/trimui/etc (firmware >= v1.1.1 ships a
+    # native sshd that this script overrides); keep accepting the old trimui/etc
+    # location so cards that still carry it keep working, and never fail the boot
+    # when neither copy is present.
+    sshd_src="/mnt/SDCARD/System/usr/trimui/etc/init.d/sshd"
+    [ -f "$sshd_src" ] || sshd_src="/mnt/SDCARD/trimui/etc/init.d/sshd"
+    if [ -f "$sshd_src" ]; then
+        cp "$sshd_src" /etc/init.d/sshd
+        chmod a+x /etc/init.d/sshd
+        /etc/init.d/sshd disable
+    fi
+    unset sshd_src
 
     # fix retroarch path for PortMaster
     cp "/mnt/SDCARD/System/usr/trimui/bin/retroarch" "/usr/bin/retroarch"
@@ -275,4 +284,25 @@ if [ -f "/tmp/device_changed" ]; then
     # Change Avahi DNS name
     sed -i "s/^host-name=.*/host-name=$current_device/" /mnt/SDCARD/System/etc/avahi/avahi-daemon.conf
 
+fi
+
+######################### Analog sticks at each boot #########################
+
+# Keeps the pad layer of this device consistent:
+#   * a calibration file the daemon cannot use (one restored from another device,
+#     or an unfinished calibration) leaves one half of an axis dead - it is
+#     quarantined,
+#   * the installed input daemon is kept in sync with this device type, because a
+#     build for another SoC makes the pad report wrong buttons and directions,
+#   * a horizontal mirror workaround that an OS update or a settings restore
+#     dropped is written back (see README > Analog sticks).
+# All of it does nothing when there is nothing to fix.
+/mnt/SDCARD/System/usr/trimui/scripts/stick_diag.sh -q ensure
+
+# New System Tools entries only appear after the menu cache has been rebuilt,
+# so drop it whenever the JukaMix version changed.
+menu_stamp="/mnt/SDCARD/System/etc/menucache_version.txt"
+if [ "$(cat "$menu_stamp" 2>/dev/null)" != "$version" ]; then
+    rm -f "/mnt/SDCARD/Apps/SystemTools/Menu/Menu_cache7.db"
+    printf '%s' "$version" >"$menu_stamp"
 fi

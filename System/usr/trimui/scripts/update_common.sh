@@ -15,7 +15,7 @@ BLUE='\033[1;34m'
 PURPLE='\033[01;35m'
 NC='\033[0m' # No Color
 
-GITHUB_REPOSITORY=cizia64/CrossMix-OS
+GITHUB_REPOSITORY=jukaLang/JukaCrossMix-OS
 updatedir="/mnt/SDCARD/System/updates"
 Local_CrossMixVersion="$(cat "/mnt/SDCARD/System/usr/trimui/crossmix-version.txt")"
 current_date=$(date "+%Y-%m-%d")

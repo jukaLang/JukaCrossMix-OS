@@ -1,7 +1,17 @@
 export PATH="/mnt/SDCARD/System/usr/trimui/scripts/:/mnt/SDCARD/System/bin:${PATH:+:$PATH}"
 export LD_LIBRARY_PATH="/usr/trimui/lib:${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
-EMU_DIR="$(echo "$0" | sed -E 's|(.*Emus/[^/]+)/.*|\1|')"
+# Resolve symlinks to get the real script path
+_REAL0="$(readlink -f "$0" 2>/dev/null || echo "$0")"
+
+# Extract emulator directory from the resolved path
+EMU_DIR="$(echo "$_REAL0" | sed -E 's|(.*Emus/[^/]+)/.*|\1|')"
+
+# Fallback: if EMU_DIR is empty, try the unresolved $0
+if [ -z "$EMU_DIR" ]; then
+    EMU_DIR="$(echo "$0" | sed -E 's|(.*Emus/[^/]+)/.*|\1|')"
+fi
+
 ROM_DIR="$(echo "$1" | sed -E 's|(.*Roms/[^/]+)/.*|\1|')"
 GAME=$(basename "$1")
 

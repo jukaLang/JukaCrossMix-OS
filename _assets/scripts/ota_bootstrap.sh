@@ -5,7 +5,7 @@ export LD_LIBRARY_PATH="/mnt/SDCARD/System/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
 CommonUpdateScript="/mnt/SDCARD/System/usr/trimui/scripts/update_common.sh"
 currentUpdatePack=$("$CommonUpdateScript" -v)
 
-GITHUB_REPOSITORY=cizia64/CrossMix-OS
+GITHUB_REPOSITORY=jukaLang/JukaCrossMix-OS
 UpdatePackUrl="https://raw.githubusercontent.com/$GITHUB_REPOSITORY/main/System/usr/trimui/scripts/update_common.sh"
 wget --no-check-certificate --quiet --show-progress -O "/tmp/update_common.sh" "$UpdatePackUrl"
 chmod +x "/tmp/update_common.sh"
@@ -37,7 +37,7 @@ done
 if [ -f "/mnt/SDCARD/betatest" ]; then
     download_file "update_ota_release.sh - beta" "https://dl.dropbox.com/scl/fi/3omlfp6tb13hadh25ivod/update_ota_release.sh?rlkey=2if0wx1k4dta8ozzhevr1mfn9" -f "/mnt/SDCARD/System/usr/trimui/scripts/update_ota_release.sh"
 else
-    download_file "update_ota_release.sh" "https://raw.githubusercontent.com/cizia64/CrossMix-OS/refs/heads/main/System/usr/trimui/scripts/update_ota_release.sh" -d "/mnt/SDCARD/System/usr/trimui/scripts"
+    download_file "update_ota_release.sh" "https://raw.githubusercontent.com/jukaLang/JukaCrossMix-OS/refs/heads/main/System/usr/trimui/scripts/update_ota_release.sh" -d "/mnt/SDCARD/System/usr/trimui/scripts"
 fi
 
 if [ ! "$currentUpdatePack" = "$onlineUpdatePack" ] || [ "$missing_files" -eq 1 ]; then

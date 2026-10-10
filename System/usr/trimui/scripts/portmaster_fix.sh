@@ -172,8 +172,8 @@ echo "-----------------------------------------"
 # Variables
 PM_FixArchive="/mnt/SDCARD/System/updates/portmaster_fix.7z"
 PM_FixArchive_MD5="/mnt/SDCARD/System/updates/portmaster_fix.7z.md5"
-PM_FixArchive_URL="https://raw.githubusercontent.com/cizia64/CrossMix-OS/refs/heads/main/_assets/resources/portmaster_fix.7z"
-PM_FixArchive_MD5_URL="https://raw.githubusercontent.com/cizia64/CrossMix-OS/refs/heads/main/_assets/resources/portmaster_fix.7z.md5"
+PM_FixArchive_URL="https://raw.githubusercontent.com/jukaLang/JukaCrossMix-OS/refs/heads/main/_assets/resources/portmaster_fix.7z"
+PM_FixArchive_MD5_URL="https://raw.githubusercontent.com/jukaLang/JukaCrossMix-OS/refs/heads/main/_assets/resources/portmaster_fix.7z.md5"
 TEMP_FILE="/tmp/portmaster_fix.7z.md5"
 
 # Step 1: Download the remote MD5 file
@@ -213,8 +213,8 @@ echo "------------------------------------"
 # Variables
 Python_Archive="/mnt/SDCARD/System/updates/update_001/python.zip"
 Python_Archive_MD5="/mnt/SDCARD/System/updates/update_001/python.zip.md5"
-Python_Archive_URL="https://raw.githubusercontent.com/cizia64/CrossMix-OS/refs/heads/main/_assets/resources/python.zip"
-Python_Archive_MD5_URL="https://raw.githubusercontent.com/cizia64/CrossMix-OS/refs/heads/main/_assets/resources/python.zip.md5"
+Python_Archive_URL="https://raw.githubusercontent.com/jukaLang/JukaCrossMix-OS/refs/heads/main/_assets/resources/python.zip"
+Python_Archive_MD5_URL="https://raw.githubusercontent.com/jukaLang/JukaCrossMix-OS/refs/heads/main/_assets/resources/python.zip.md5"
 TEMP_FILE="/tmp/python.zip.md5"
 
 # Step 1: Download the remote MD5 file

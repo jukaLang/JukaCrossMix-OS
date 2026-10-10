@@ -1,0 +1,9 @@
+# PortMaster IP Check function
+# Returns 0 if internet is reachable, 1 otherwise
+PortMasterIPCheck() {
+    if wget -q --spider https://github.com 2>/dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
