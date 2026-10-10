@@ -54,7 +54,7 @@ backup_current_settings() {
                 # Fallback via system.json
             sttbrt=$(/usr/trimui/bin/shmvar brightness 2>/dev/null)
             if [ -n "$sttbrt" ]; then
-                val=$(printf "%.0f" "$(echo "$sttbrt * 23" | bc)")
+                val=$(printf "%.0f" "$(awk "BEGIN {printf \"%.0f\", $sttbrt * 23}")")
             else
                 val=200
             fi
@@ -119,7 +119,7 @@ print_current_settings() {
             if [ -z "$value" ] || [ "$value" = "0" ]; then
                 sttbrt=$(/usr/trimui/bin/shmvar brightness 2>/dev/null)
                 if [ -n "$sttbrt" ]; then
-                    value=$(printf "%.0f" "$(echo "$sttbrt * 23" | bc)")
+                    value=$(printf "%.0f" "$(awk "BEGIN {printf \"%.0f\", $sttbrt * 23}")")
                 else
                     value=200
                 fi

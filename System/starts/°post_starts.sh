@@ -54,8 +54,8 @@ VNC_wait_for_MainUI() {
     elapsed=0
     while ! pgrep -x "MainUI" >/dev/null; do
         sleep 0.5
-        elapsed=$(echo "$elapsed + 0.5" | bc)
-        if [ "$(echo "$elapsed >= $timeout" | bc)" -eq 1 ]; then
+        elapsed=$((elapsed + 1))  # 1 unit = 0.5 seconds (so timeout check uses * 2)
+        if [ "$elapsed" -ge "$((timeout * 2))" ]; then  # timeout is in seconds, elapsed is in 0.5s units
             echo "Error: MainUI did not start within $timeout seconds."
             return 1
         fi

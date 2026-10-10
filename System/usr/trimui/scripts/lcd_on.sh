@@ -8,7 +8,7 @@ STATE_FILE="/tmp/lcd_state"
 # display settings goes from 0 to 10
 sttbrt=`cat /mnt/UDISK/system.json|jq .brightness`
 # lcd brightness goes from 0 to 255, but our "real" max is 230
-disbrt=$(printf "%.0f" `echo "$sttbrt * 23"|bc`)
+disbrt=$(printf "%.0f" $(awk "BEGIN {printf \"%.0f\", $sttbrt * 23}"))
 
 # we make sure settings "0" is still visible
 if [ "$disbrt" = "0" ]; then

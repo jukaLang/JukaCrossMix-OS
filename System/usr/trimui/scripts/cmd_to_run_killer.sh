@@ -52,8 +52,8 @@ try_clean_retroarch_exit() {
         elapsed=0
         while kill -0 "$ra_pid" 2>/dev/null; do
             sleep "$CHECK_INTERVAL"
-            elapsed=$(echo "$elapsed + $CHECK_INTERVAL" | bc)
-            if [ "$(echo "$elapsed >= $TIMEOUT" | bc)" -eq 1 ]; then
+            elapsed=$((elapsed + CHECK_INTERVAL))
+            if [ "$elapsed" -ge "$TIMEOUT" ]; then
                 echo "RetroArch still running after $TIMEOUT s, sending SIGKILL"
                 kill -9 "$ra_pid"
                 break
@@ -75,8 +75,8 @@ terminate_pid() {
     elapsed=0
     while kill -0 "$pid" 2>/dev/null; do
         sleep "$CHECK_INTERVAL"
-        elapsed=$(echo "$elapsed + $CHECK_INTERVAL" | bc)
-        if [ "$(echo "$elapsed >= $TIMEOUT" | bc)" -eq 1 ]; then
+        elapsed=$((elapsed + CHECK_INTERVAL))
+        if [ "$elapsed" -ge "$TIMEOUT" ]; then
             echo "Process $pid still alive after $TIMEOUT s, sending SIGKILL"
             kill -9 "$pid"
             break
