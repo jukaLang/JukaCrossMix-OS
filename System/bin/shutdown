@@ -38,6 +38,13 @@ if [ "$0" = "/tmp/_shutdown" ]; then
 	sleep 0.1
 	kill_hooked_tasks -9
 
+	# JukaMix: mark this shutdown as clean, so the next boot can tell a power
+	# loss, a hang or a crash apart from a normal shutdown.  Best effort only:
+	# the helper exits immediately and never delays the shutdown.
+	if [ -f /mnt/SDCARD/System/usr/trimui/scripts/log_capture.sh ]; then
+		sh /mnt/SDCARD/System/usr/trimui/scripts/log_capture.sh shutdown "$1" >/dev/null 2>&1
+	fi
+
 	sync
 
 	swapoff /mnt/SDCARD/cachefile

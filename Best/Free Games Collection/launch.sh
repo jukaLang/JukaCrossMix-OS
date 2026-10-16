@@ -35,7 +35,7 @@ echo "**************************************************************************
 #  RomFullPath   /mnt/SDCARD/Best/Free Games Collection/./Roms/ATARI2600/Sheep It Up.zip
 #  RomPath       /mnt/SDCARD/Best/Free Games Collection/./Roms/ATARI2600
 #  RomDir        ATARI2600
-#  LaunchPath    /mnt/SDCARD/Emus/ATARI2600/launch.sh
+#  LaunchPath    /mnt/SDCARD/Emus/ATARI2600/default.sh
 #  ***************************************************************************
 
 if [ -f "$LaunchPath" ]; then

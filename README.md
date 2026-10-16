@@ -278,7 +278,7 @@ If you see flickering or the menu crashes:
 
 1. Power off the device (hold power button for 5 seconds)
 2. Remove the SD card
-3. On a computer, delete `System/usr/trimui/jukamix-version.txt` from the card
+3. On a computer, delete `System/usr/trimui/crossmix-version.txt` from the card
 4. Reinsert the card and power on — JukaMix will re-initialize
 
 If this persists, re-extract the archive to the card.
@@ -514,7 +514,10 @@ Best pack folders must not contain spaces — the on-device name comes from the 
 | Problem | Quick Fix |
 |---------|-----------|
 | **Stock launcher appears** | Settings → Boot Source → SD Card (Brick: automatic) |
-| **Screen flickering** | Delete `System/usr/trimui/jukamix-version.txt`, reboot |
+| **Screen flickering** | Delete `System/usr/trimui/crossmix-version.txt`, reboot |
+| **A game or app crashed / will not start** | System Tools → TOOLS → **System Logs - Collect**: it writes `System/logs/diagnostics_<stamp>.txt` (a summary, recent crashes, every launch and how it ended, plus the preserved runtime logs) — share that file when reporting a problem |
+| **The console froze / needed a hard reset** | Same report: it dates the last time the device was known alive and flags a previous session that ended without a clean shutdown, names the app that was running and says whether the whole system had already stopped working, so a hang can be blamed on the app rather than on "the device froze" |
+| **Not sure a crash would be recorded at all** | System Tools → TOOLS → **System Logs - Verify**: it checks that the boot, launcher and shutdown hooks are really wired up, replays a crash, a hang (including what the last watchdog ticks saw), an app that stops using CPU and a power pull in a throwaway sandbox, and reports what it cannot confirm |
 | **Games not showing** | Check ROMs are in `Roms/<SYSTEM>/` with correct extension |
 | **No sound** | Check volume buttons, Settings → Sound |
 | **Wi-Fi won't connect** | Toggle Wi-Fi, reboot, check 2.4GHz network |
@@ -557,7 +560,16 @@ through the `JUKAMIX_*` overrides and drive the guided stick test from a stub `e
 ```sh
 sh tests/stick_diag_test.sh        # stick diagnostics, mirror fix, self-heal, per-device paths
 sh tests/inputd_switcher_test.sh   # daemon install/verify per device, polling-rate modes
+sh tests/retroarch_launcher_test.sh # RetroArch launcher env, RA_DIR and inputd handshake
+sh tests/logging_test.sh           # crash/session logs, watchdog + hang autopsy, diagnostics report, self-check
 ```
+
+The logging test also covers the crash-reporting plumbing described under
+[troubleshooting](#troubleshooting): the append/rotate helper, the boot and launch
+hooks, the watchdog tick and its hang autopsy (which app was running, whether the
+system had already stopped working, and when an app stops using CPU), the report
+`System/logs/diagnostics_<stamp>.txt`, and the `System Logs - Verify` self-check
+(including that a hook stripped out of the boot sequence fails it).
 
 <details>
 <summary><b>Release pipeline (maintainers)</b></summary>

@@ -89,6 +89,28 @@ if [ -f "System/etc/cpu_profiles.sh" ]; then
             note_fail "cpu_profiles.sh missing profile for $dev"
         fi
     done
+    # The Smart Pro S (A523) stock kernel exposes the 2000 MHz step, the A133P
+    # devices top out at 1800 MHz.  This ceiling drives the Fn-key CPU tools,
+    # CPU - Max and the OSD frequency sliders.
+    if grep -qE '^tsps\)[^#]*CPU_FREQ_MAX=2000000' "System/etc/cpu_profiles.sh"; then
+        echo "  OK tsps ceiling 2000 MHz (A523)"
+    else
+        note_fail "cpu_profiles.sh must give tsps CPU_FREQ_MAX=2000000 (Smart Pro S is A523)"
+    fi
+    for dev in tsp brick brickpro; do
+        if grep -qE "^${dev}\)[^#]*CPU_FREQ_MAX=1800000" "System/etc/cpu_profiles.sh"; then
+            echo "  OK $dev ceiling 1800 MHz (A133P)"
+        else
+            note_fail "cpu_profiles.sh must give $dev CPU_FREQ_MAX=1800000"
+        fi
+    done
+    # Without the 2000 MHz entry the clamp in cpufreq.sh maps a 2000000 ceiling
+    # back to id 7, so the Smart Pro S profile would silently do nothing.
+    if grep -q '2000000) CPU_MAX_ID=8' "System/usr/trimui/scripts/cpufreq.sh"; then
+        echo "  OK cpufreq.sh maps 2000000 -> CPU_MAX_ID 8"
+    else
+        note_fail "cpufreq.sh must map a 2000000 ceiling to CPU_MAX_ID=8"
+    fi
 else
     note_fail "Missing System/etc/cpu_profiles.sh"
 fi

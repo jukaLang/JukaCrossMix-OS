@@ -26,35 +26,30 @@ fi
 /mnt/SDCARD/System/usr/trimui/scripts/button_state.sh Y
 if [ $? -eq 10 ]; then
 
-    FILE_LIST=""
-
+    # Build the selector's choice list with "$@" so every filename is passed as
+    # its own argument: no eval, no re-splitting, and names containing spaces
+    # survive intact.
+    set --
     for f in /mnt/SDCARD/RetroArch/ra64.trimui_${current_device}_*.bin; do
-        FILE_LIST="$FILE_LIST '$(basename "$f")' "
+        [ -f "$f" ] || continue
+        set -- "$@" "$(basename "$f")"
     done
 
     # Also include Brick binaries for Brick Pro users
     if [ "$current_device" = "brickpro" ]; then
         for f in /mnt/SDCARD/RetroArch/ra64.trimui_brick_*.bin; do
-            FILE_LIST="$FILE_LIST '$(basename "$f")' "
+            [ -f "$f" ] || continue
+            set -- "$@" "$(basename "$f")"
         done
     fi
 
-    if [ -z "$FILE_LIST" ]; then
+    if [ $# -eq 0 ]; then
         echo "No files found for device $current_device."
         exit 1
     fi
 
-    # Build selector arguments safely - strip the single quotes added by FILE_LIST construction
-    # FILE_LIST is built as: 'file1' 'file2' '...'
-    # We extract just the filenames and pass them as --file="filename" args
-    SELECTOR_ARGS=""
-    for f in $FILE_LIST; do
-        # Strip surrounding single quotes that FILE_LIST adds
-        clean_f="${f#'}"
-        clean_f="${clean_f%'}"
-        SELECTOR_ARGS="$SELECTOR_ARGS --file="$clean_f""
-    done
-    SELECTED_FILE=$(/mnt/SDCARD/System/bin/selector -fs 120 $SELECTOR_ARGS | grep "You selected")
+    # "-c <choices> ..." is selector's custom-string list and must be the last flag.
+    SELECTED_FILE=$(/mnt/SDCARD/System/bin/selector -fs 120 -c "$@" | grep "You selected")
     SELECTED_FILE=$(printf '%s\n' "$SELECTED_FILE" | sed 's/^.*: //')
 
 fi

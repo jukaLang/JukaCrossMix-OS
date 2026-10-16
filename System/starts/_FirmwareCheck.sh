@@ -304,7 +304,10 @@ else
 
     else
         echo "Firmware version $Current_FW_Revision OK."
-        rm -f "/mnt/SDCARD/trimui_tg5040.awimg"
+        # Remove the firmware image this device extracted (trimui_tg5040.awimg on
+        # the Smart Pro/Brick family, trimui_tg5050.awimg on the Smart Pro S) so
+        # it does not linger in the SD-card root after a successful check.
+        [ -n "$FIRMWARE_FILENAME" ] && rm -f "/mnt/SDCARD/$FIRMWARE_FILENAME"
 
     fi
 fi

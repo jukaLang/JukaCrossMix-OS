@@ -74,11 +74,13 @@ if [ -z "$governor" ]; then
 fi
 
 # Device-aware frequency clamping: never request a step the device cannot
-# reach (e.g. 2000 MHz on stock A133P kernels), so "max" tools actually work
-# on every device. See System/etc/cpu_profiles.sh.
+# reach (the A133P stock kernel has no 2000 MHz step; the A523-based Smart
+# Pro S does), so "max" tools actually work on every device. See
+# System/etc/cpu_profiles.sh.
 . /mnt/SDCARD/System/etc/cpu_profiles.sh 2>/dev/null || CPU_FREQ_MAX=1800000
 
 case "$CPU_FREQ_MAX" in
+2000000) CPU_MAX_ID=8 ;;
 1800000) CPU_MAX_ID=7 ;;
 1608000) CPU_MAX_ID=6 ;;
 1416000) CPU_MAX_ID=5 ;;
@@ -108,7 +110,7 @@ fi
 
 # Validate core count if provided
 if [ -n "$active_cores" ]; then
-	total_cores=$(ls -d /sys/devices/system/cpu/cpu[0-3]* 2>/dev/null | wc -l)
+	total_cores=$(ls -d /sys/devices/system/cpu/cpu[0-9]* 2>/dev/null | wc -l)
 	if [ "$active_cores" -lt 1 ] || [ "$active_cores" -gt "$total_cores" ]; then
 		echo "cpufreq.sh: Invalid active core count."
 		exit 1
@@ -164,7 +166,7 @@ fi
 # Optionally set number of active CPU cores
 if [ -n "$active_cores" ]; then
 	i=0
-	for cpu_path in /sys/devices/system/cpu/cpu[0-3]*; do
+	for cpu_path in /sys/devices/system/cpu/cpu[0-9]*; do
 		cpu_id=$(basename $cpu_path | sed 's/cpu//')
 		if [ "$i" -lt "$active_cores" ]; then
 			echo 1 > "$cpu_path/online" 2>/dev/null

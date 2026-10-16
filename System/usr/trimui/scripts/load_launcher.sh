@@ -61,7 +61,19 @@ echo "load_launcher.sh : $Launcher_name dowork 0x" >>"$LOG_FILE"
     rm "/tmp/trimui_osd/slider_cpu_preset/curpreset"
     echo "0/3" >"/tmp/trimui_osd/slider_cpu_preset/status"
 } &
+# Record that a launch started: if the emulator never comes back (hang or power
+# pull) this is the only trace of what was running.
+sh /mnt/SDCARD/System/usr/trimui/scripts/log_capture.sh start "$Launcher_command" "$1" >/dev/null 2>&1
+_launch_started=$(date +%s)
+
 "$EMU_DIR/$Launcher_command" "$@"
+_launcher_status=$?
+_launch_seconds=$(( $(date +%s) - _launch_started ))
+
+# Record how the app ended (139 = crashed, 137 = killed...), how long it lasted,
+# and preserve the volatile runtime logs: after a crash that is the only trace
+# left behind.
+sh /mnt/SDCARD/System/usr/trimui/scripts/log_capture.sh app "$_launcher_status" "$Launcher_command" "$1" "$_launch_seconds" >/dev/null 2>&1
 {
     rm "/tmp/trimui_osd/slider_cpu_preset/curpreset"
     echo "0/3" >"/tmp/trimui_osd/slider_cpu_preset/status"

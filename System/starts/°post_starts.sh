@@ -204,3 +204,12 @@ wifi_value=$(/usr/trimui/bin/systemval wifi)
 if [ "$wifi_value" -eq 1 ]; then
     wifi_workaround & # (race condition between hardwareservice and MainUI in FW v1.1.0)
 fi
+
+# --- runtime logging: record this boot so a crash can be diagnosed later ---
+/mnt/SDCARD/System/usr/trimui/scripts/log_capture.sh boot >/dev/null 2>&1 &
+
+# --- runtime logging: the watchdog keeps the tmpfs logs snapshotted and leaves a
+# "still alive" stamp behind, so a hard hang or a power pull can still be dated ---
+if [ -f /mnt/SDCARD/System/usr/trimui/scripts/log_watch.sh ]; then
+    sh /mnt/SDCARD/System/usr/trimui/scripts/log_watch.sh >/dev/null 2>&1 &
+fi

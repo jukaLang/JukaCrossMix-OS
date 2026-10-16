@@ -39,8 +39,10 @@ for patch_path in "$PATCH_DIR"/*."$CURRENT_DEVICE".patch; do
     if [ -f "$source_file" ]; then
         echo "Patching $lang_code..."
 
-        # Use python3 to apply the patch
-        python3 -c "
+        # The image ships System/bin/python3.11: there is no plain "python3" on a
+        # fresh card (the legacy updater used to unzip one). Call the bundled
+        # interpreter explicitly, as the other image scripts do.
+        /mnt/SDCARD/System/bin/python3.11 -c "
 import sys
 import json
 import os

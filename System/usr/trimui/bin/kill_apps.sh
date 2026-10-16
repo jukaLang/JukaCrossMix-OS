@@ -115,7 +115,7 @@ if [ $exit_code -eq 10 ]; then # No shutdown and force current app to exit.
     fi
     
     if [ "$SMARTLEDD_WAS_RUNNING" -eq 1 ]; then
-        "/mnt/SDCARD/Apps/LedControl.pak/smartledd" &
+        ( cd /mnt/SDCARD/Apps/SmartLed && ./smartledd ) &
     fi
     
     log_message "Force exit app completed"
